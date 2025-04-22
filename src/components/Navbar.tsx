@@ -1,6 +1,7 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
@@ -73,8 +74,13 @@ export default function Navbar() {
               <span className="absolute top-1 right-1 block h-2 w-2 rounded-full bg-red-500"></span>
             </Link>
             {/* User Avatar */}
-            <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-white">
-              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80" alt="User avatar" className="h-full w-full object-cover" />
+            <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-white relative">
+              <Image 
+                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80" 
+                alt="User avatar" 
+                fill
+                className="object-cover"
+              />
             </div>
           </div>
         </div>

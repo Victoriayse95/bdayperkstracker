@@ -9,7 +9,23 @@ const currentDate = new Date();
 const currentMonth = currentDate.getMonth();
 const currentYear = currentDate.getFullYear();
 
-const sampleRedemptions = [
+interface Redemption {
+  id: number;
+  name: string;
+  perks: string;
+  redemptionMonth: number;
+  redemptionDateFrom: string;
+  redemptionDateTo: string;
+  contactNumber: string;
+  emailAddress: string;
+  terms: string;
+  redemptionLink: string;
+  signUpLink: string;
+  notes: string;
+  status: string;
+}
+
+const sampleRedemptions: Redemption[] = [
   {
     id: 1,
     name: "Starbucks Birthday Drink",
@@ -120,9 +136,9 @@ export default function AllRedemptionsPage() {
   };
 
   // Sort redemptions based on column and direction
-  const sortedRedemptions = [...filteredRedemptions].sort((a: any, b: any) => {
-    const valueA = a[sortColumn];
-    const valueB = b[sortColumn];
+  const sortedRedemptions = [...filteredRedemptions].sort((a: Redemption, b: Redemption) => {
+    const valueA = a[sortColumn as keyof Redemption];
+    const valueB = b[sortColumn as keyof Redemption];
     
     if (valueA < valueB) {
       return sortDirection === 'asc' ? -1 : 1;

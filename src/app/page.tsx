@@ -114,7 +114,6 @@ const sampleLessons = [
 
 export default function Home() {
   const [redemptions, setRedemptions] = useState(currentMonthRedemptions);
-  const [userFirstName, setUserFirstName] = useState("Victoria");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [activeDates, setActiveDates] = useState<Date[]>([]);
 
@@ -148,15 +147,6 @@ export default function Home() {
       default:
         return 'status-to-redeem';
     }
-  };
-
-  // Get month name
-  const getMonthName = (monthIndex: number) => {
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    return months[monthIndex];
   };
 
   // Filter lessons based on selected date

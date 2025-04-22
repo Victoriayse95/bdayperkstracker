@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowUpRightIcon, StarIcon } from '@heroicons/react/24/solid';
+import Image from 'next/image';
 
 interface ActivityCardProps {
   title: string;
@@ -27,12 +28,14 @@ export default function ActivityCard({
           <h3 className="text-xl font-semibold mb-1">{title}</h3>
           <div className="avatar-group mt-2">
             {participants.map((participant) => (
-              <img 
-                key={participant.id}
-                src={participant.avatar} 
-                alt="Participant avatar" 
-                className="avatar"
-              />
+              <div key={participant.id} className="relative avatar">
+                <Image 
+                  src={participant.avatar} 
+                  alt="Participant avatar" 
+                  fill
+                  className="object-cover"
+                />
+              </div>
             ))}
             {participants.length > 0 && (
               <div className="avatar bg-gray-200 flex items-center justify-center text-xs text-gray-500 font-medium">
