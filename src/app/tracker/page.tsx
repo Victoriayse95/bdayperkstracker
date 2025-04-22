@@ -1,10 +1,20 @@
 "use client";
 
 import { useState } from 'react';
-import Link from 'next/link';
+
+// Define interface for perk object
+interface Perk {
+  id: number;
+  business: string;
+  perk: string;
+  expiryDate: string;
+  reminder: boolean;
+  notes: string;
+  status: string;
+}
 
 export default function PersonalTrackerPage() {
-  const [perks, setPerks] = useState([
+  const [perks, setPerks] = useState<Perk[]>([
     {
       id: 1,
       business: "Starbucks",
@@ -25,7 +35,8 @@ export default function PersonalTrackerPage() {
     }
   ]);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Perk>({
+    id: 0,
     business: "",
     perk: "",
     expiryDate: "",
@@ -34,15 +45,17 @@ export default function PersonalTrackerPage() {
     status: "To Redeem"
   });
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    const checked = type === 'checkbox' ? (e.target as HTMLInputElement).checked : undefined;
+    
     setFormData({
       ...formData,
       [name]: type === 'checkbox' ? checked : value
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     // Add the new perk with a unique ID
@@ -56,6 +69,7 @@ export default function PersonalTrackerPage() {
     
     // Reset the form
     setFormData({
+      id: 0,
       business: "",
       perk: "",
       expiryDate: "",
@@ -65,7 +79,7 @@ export default function PersonalTrackerPage() {
     });
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status: string): string => {
     switch(status) {
       case 'To Redeem':
         return 'bg-blue-100 text-blue-800';
@@ -256,7 +270,7 @@ export default function PersonalTrackerPage() {
           </div>
         ) : (
           <div className="p-6 text-center text-gray-500">
-            You haven't added any perks yet. Use the form above to add your first perk!
+            You haven&apos;t added any perks yet. Use the form above to add your first perk!
           </div>
         )}
       </div>

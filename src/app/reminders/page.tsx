@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from 'react';
-import Link from 'next/link';
 
 // Define type for reminder objects
 interface Reminder {
@@ -301,7 +300,7 @@ export default function RemindersPage() {
           </div>
         ) : (
           <div className="p-6 text-center text-gray-500">
-            You haven't set up any reminders yet. Use the form above to add your first reminder!
+            You haven&apos;t set up any reminders yet. Use the form above to add your first reminder!
           </div>
         )}
       </div>

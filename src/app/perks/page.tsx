@@ -1,10 +1,36 @@
+'use client';
+
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { getAllPerks, Perk } from '../../firebase/services';
 
 export default function PerksPage() {
-  // Sample perks data - in a real app, this would come from a database or API
-  const perks = [
+  const [perks, setPerks] = useState<Perk[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPerks = async () => {
+      try {
+        setLoading(true);
+        const fetchedPerks = await getAllPerks();
+        setPerks(fetchedPerks);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching perks:', err);
+        setError('Failed to load perks. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPerks();
+  }, []);
+
+  // Sample perks data as fallback if no data in Firebase yet
+  const samplePerks = [
     {
-      id: 1,
+      id: '1',
       business: "Starbucks",
       contact: "555-123-4567",
       category: "Coffee & Drinks",
@@ -14,7 +40,7 @@ export default function PerksPage() {
       notes: "Free drink on birthday - mobile app required"
     },
     {
-      id: 2,
+      id: '2',
       business: "Sephora",
       contact: "555-567-8901",
       category: "Beauty",
@@ -24,7 +50,7 @@ export default function PerksPage() {
       notes: "Free beauty gift - Beauty Insider membership required"
     },
     {
-      id: 3,
+      id: '3',
       business: "Baskin-Robbins",
       contact: "555-345-6789",
       category: "Food & Dessert",
@@ -34,7 +60,7 @@ export default function PerksPage() {
       notes: "Free ice cream scoop - birthday club membership needed"
     },
     {
-      id: 4,
+      id: '4',
       business: "Denny's",
       contact: "555-901-2345",
       category: "Restaurants",
@@ -44,7 +70,7 @@ export default function PerksPage() {
       notes: "Free Grand Slam on birthday with valid ID"
     },
     {
-      id: 5,
+      id: '5',
       business: "Ulta Beauty",
       contact: "555-234-5678",
       category: "Beauty",
@@ -55,6 +81,9 @@ export default function PerksPage() {
     }
   ];
 
+  // Use sample perks if no data fetched yet
+  const displayPerks = perks.length > 0 ? perks : samplePerks;
+
   return (
     <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="my-6">
@@ -63,6 +92,21 @@ export default function PerksPage() {
           A comprehensive list of all perks in the system
         </p>
       </div>
+
+      {loading ? (
+        <div className="flex justify-center my-8">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+        </div>
+      ) : error ? (
+        <div className="bg-red-50 p-4 rounded-md my-4">
+          <p className="text-red-700">{error}</p>
+          <p className="text-red-600 mt-2">Using sample data for display</p>
+        </div>
+      ) : perks.length === 0 ? (
+        <div className="bg-yellow-50 p-4 rounded-md my-4">
+          <p className="text-yellow-700">No perks found in the database. Displaying sample data.</p>
+        </div>
+      ) : null}
 
       <div className="flex justify-between items-center mb-6">
         <div className="w-1/3">
@@ -143,7 +187,7 @@ export default function PerksPage() {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {perks.map((perk) => (
+            {displayPerks.map((perk) => (
               <tr key={perk.id}>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {perk.business}

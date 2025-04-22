@@ -1,40 +1,91 @@
-<<<<<<< HEAD
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Birthday Perks Tracker
+
+A web application to track and manage birthday perks and redemptions. Built with Next.js, Tailwind CSS, and Firebase.
+
+## Features
+
+- **Perks Management**: Add, edit, and delete birthday perks from various businesses
+- **Categories**: Organize perks by category (food, beauty, retail, etc.)
+- **Status Tracking**: Track the status of each perk (not started, reminder sent, redeemed, etc.)
+- **Expiration Dates**: Keep track of when perks expire
+- **Modern UI**: Clean, responsive interface built with Tailwind CSS
+
+## Tech Stack
+
+- **Frontend**: Next.js, React, Tailwind CSS
+- **Backend/Database**: Firebase Firestore
+- **Deployment**: Vercel
+
+## Prerequisites
+
+Before you begin, ensure you have the following:
+
+- Node.js (v18 or newer)
+- npm or yarn
+- A Firebase account
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository:
+
+```bash
+git clone https://github.com/Victoriayse95/bdayperkstracker.git
+cd bdayperkstracker
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Create a `.env.local` file in the root directory with your Firebase configuration:
+
+```
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSyAh89n6Z-woeHHZWhfIQ84qcWXDBbcJ3r4
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=bdayperkstracker.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=bdayperkstracker
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=bdayperkstracker.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=695345747562
+NEXT_PUBLIC_FIREBASE_APP_ID=1:695345747562:web:5ac3a44742918b8a6edc13
+```
+
+4. Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deployment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Deploying to Vercel
 
-## Learn More
+1. Push your code to GitHub
+2. Go to [Vercel](https://vercel.com) and sign in with GitHub
+3. Click "New Project" and import your GitHub repository
+4. Configure the project:
+   - Framework Preset: Next.js
+   - Root Directory: ./
+   - Build Command: (default)
+   - Output Directory: (default)
+5. Add environment variables:
+   - Add all Firebase config variables from your `.env.local` file
+6. Click "Deploy"
 
-To learn more about Next.js, take a look at the following resources:
+Once deployed, Vercel will provide you with a URL for your live application.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Firebase Setup
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The application uses Firebase for data storage. The Firebase configuration is included in the `src/firebase` directory.
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-=======
-# bdayperkstracker
->>>>>>> b19ea19a3fb40c0146a9da7ac129b789633accd1
+## Acknowledgments
+
+- Next.js team for the amazing framework
+- Tailwind CSS for the styling utilities
+- Firebase for the backend services
