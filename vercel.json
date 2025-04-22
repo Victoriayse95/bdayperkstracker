@@ -4,12 +4,6 @@
   "outputDirectory": ".next",
   "installCommand": "npm install",
   "regions": ["sfo1"],
-  "builds": [
-    {
-      "src": "next.config.ts",
-      "use": "@vercel/next"
-    }
-  ],
   "env": {
     "NEXT_PUBLIC_FIREBASE_API_KEY": "${NEXT_PUBLIC_FIREBASE_API_KEY}",
     "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN": "${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}",
