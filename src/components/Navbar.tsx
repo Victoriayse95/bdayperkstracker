@@ -8,10 +8,8 @@ export default function Navbar() {
   
   const navItems = [
     { name: 'Home', href: '/' },
-    { name: 'All Perks', href: '/perks' },
-    { name: 'Add New Perk', href: '/perks/new' },
-    { name: 'My Favorites', href: '/favorites' },
-    { name: 'Tasks', href: '/tasks' },
+    { name: 'All Redemptions', href: '/redemptions' },
+    { name: 'Add New Redemption', href: '/redemptions/new' },
   ];
 
   return (
@@ -40,17 +38,20 @@ export default function Navbar() {
                   }`}
                 >
                   {item.name}
-                  {item.name === 'Tasks' && (
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 ml-1">
-                      <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
-                    </svg>
-                  )}
                 </Link>
               );
             })}
           </nav>
           
-          <div className="ml-auto flex items-center">
+          <div className="ml-auto flex items-center space-x-4">
+            {/* Notification Bell */}
+            <Link href="/notifications" className="text-gray-500 hover:text-gray-700 relative">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+              </svg>
+              {/* Notification indicator - can be dynamically shown/hidden */}
+              <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500"></span>
+            </Link>
             <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-semibold">
               V
             </div>

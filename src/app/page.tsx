@@ -1,110 +1,221 @@
+"use client";
+
+import { useState } from 'react';
 import Link from 'next/link';
 
+// Sample redemption data - in a real app, this would come from Firebase
+const currentDate = new Date();
+const currentMonth = currentDate.getMonth();
+const currentYear = currentDate.getFullYear();
+
+const sampleRedemptions = [
+  {
+    id: 1,
+    name: "Starbucks Birthday Drink",
+    perks: "Free drink of your choice",
+    redemptionMonth: currentMonth, // Current month
+    redemptionDateFrom: `${currentMonth + 1}/01/${currentYear}`,
+    redemptionDateTo: `${currentMonth + 1}/30/${currentYear}`,
+    contactNumber: "555-123-4567",
+    emailAddress: "info@starbucks.com",
+    terms: "Must be a Starbucks Rewards member. Show app.",
+    redemptionLink: "https://starbucks.com/rewards",
+    signUpLink: "https://starbucks.com/rewards/signup",
+    notes: "Mobile app required for redemption",
+    status: "To Redeem"
+  },
+  {
+    id: 2,
+    name: "Sephora Beauty Insider Gift",
+    perks: "Free beauty gift during birthday month",
+    redemptionMonth: currentMonth, // Current month
+    redemptionDateFrom: `${currentMonth + 1}/01/${currentYear}`,
+    redemptionDateTo: `${currentMonth + 1}/05/${currentYear}`, // Expiring soon (within 7 days)
+    contactNumber: "555-567-8901",
+    emailAddress: "info@sephora.com",
+    terms: "Must be a Beauty Insider member. Valid in-store or online.",
+    redemptionLink: "https://sephora.com/beauty-insider",
+    signUpLink: "https://sephora.com/beauty-insider/signup",
+    notes: "Choose from skincare or makeup option",
+    status: "Expiring Soon"
+  },
+  {
+    id: 3,
+    name: "Baskin-Robbins Free Scoop",
+    perks: "Free ice cream scoop",
+    redemptionMonth: currentMonth, // Current month
+    redemptionDateFrom: `${currentMonth + 1}/01/${currentYear}`,
+    redemptionDateTo: `${currentMonth + 1}/30/${currentYear}`,
+    contactNumber: "555-345-6789",
+    emailAddress: "info@baskinrobbins.com",
+    terms: "Join birthday club for redemption",
+    redemptionLink: "https://baskinrobbins.com/birthday",
+    signUpLink: "https://baskinrobbins.com/signup",
+    notes: "Any flavor, single scoop only",
+    status: "Redeemed"
+  },
+  {
+    id: 4,
+    name: "Ulta Beauty Birthday Gift",
+    perks: "Free birthday gift with any purchase",
+    redemptionMonth: currentMonth - 1, // Last month (expired)
+    redemptionDateFrom: `${currentMonth}/01/${currentYear}`,
+    redemptionDateTo: `${currentMonth}/30/${currentYear}`,
+    contactNumber: "555-234-5678",
+    emailAddress: "info@ulta.com",
+    terms: "Must be Ultamate Rewards member",
+    redemptionLink: "https://ulta.com/rewards",
+    signUpLink: "https://ulta.com/rewards/signup",
+    notes: "Gift changes quarterly",
+    status: "Expired"
+  }
+];
+
+// Filter redemptions for current month
+const currentMonthRedemptions = sampleRedemptions.filter(
+  redemption => redemption.redemptionMonth === currentMonth
+);
+
 export default function Home() {
+  const [redemptions, setRedemptions] = useState(currentMonthRedemptions);
+
+  // Function to update redemption status
+  const updateStatus = (id: number, newStatus: string) => {
+    setRedemptions(prev => 
+      prev.map(redemption => 
+        redemption.id === id ? {...redemption, status: newStatus} : redemption
+      )
+    );
+  };
+
+  // Get status class based on status value
+  const getStatusClass = (status: string) => {
+    switch(status) {
+      case 'To Redeem':
+        return 'bg-blue-100 text-blue-800';
+      case 'Redeemed':
+        return 'bg-green-100 text-green-800';
+      case 'Expired':
+        return 'bg-gray-100 text-gray-800';
+      case 'Expiring Soon':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-blue-100 text-blue-800';
+    }
+  };
+
   return (
     <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="my-6">
         <h1 className="text-3xl font-bold text-gray-900">Perks to Claim</h1>
         <p className="mt-2 text-gray-600">
-          Birthday perks with service scheduled in exactly 3 days from now
+          Birthday perks available for redemption this month
         </p>
       </div>
 
-      <div className="overflow-hidden bg-white shadow sm:rounded-lg mb-6">
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <div className="flex space-x-4">
-            <input
-              type="text"
-              placeholder="Search perks..."
-              className="px-3 py-2 border border-gray-300 rounded-md"
-            />
-          </div>
-          <Link
-            href="/perks/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-          >
-            Add New Perk
-          </Link>
+      <div className="mb-6 flex justify-between items-center">
+        <div className="w-80">
+          <input
+            type="text"
+            placeholder="Search redemptions..."
+            className="px-3 py-2 border border-gray-300 rounded-md w-full"
+          />
         </div>
+        <Link
+          href="/redemptions/new"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+        >
+          Add New Redemption
+        </Link>
+      </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                >
-                  Business Name ↓
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                >
-                  Contact ↓
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                >
-                  Category ↓
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                >
-                  Expiry Date ↓
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                >
-                  Value ↓
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                >
-                  Status ↓
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Notes
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              <tr>
+      <div className="overflow-hidden bg-white shadow border border-gray-200 sm:rounded-lg">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+              >
+                Redemption Name
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+              >
+                Contact
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+              >
+                Redemption Perks
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+              >
+                Valid Until
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+              >
+                Status
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Notes
+              </th>
+              <th
+                scope="col"
+                className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {redemptions.map((redemption) => (
+              <tr key={redemption.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  Starbucks
+                  <div contentEditable className="outline-none focus:ring-2 focus:ring-indigo-500 focus:rounded px-2 py-1">
+                    {redemption.name}
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  555-123-4567
+                  <div contentEditable className="outline-none focus:ring-2 focus:ring-indigo-500 focus:rounded px-2 py-1">
+                    {redemption.contactNumber}
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  Coffee & Drinks
+                  <div contentEditable className="outline-none focus:ring-2 focus:ring-indigo-500 focus:rounded px-2 py-1">
+                    {redemption.perks}
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  04/26/2023
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  $5
+                  <div contentEditable className="outline-none focus:ring-2 focus:ring-indigo-500 focus:rounded px-2 py-1">
+                    {redemption.redemptionDateTo}
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                    Reminder Sent
-                  </span>
+                  <select 
+                    className={`px-2 py-1 text-xs leading-5 font-semibold rounded-full ${getStatusClass(redemption.status)} border-0 outline-none cursor-pointer`}
+                    value={redemption.status}
+                    onChange={(e) => updateStatus(redemption.id, e.target.value)}
+                  >
+                    <option value="To Redeem">To Redeem</option>
+                    <option value="Redeemed">Redeemed</option>
+                    <option value="Expiring Soon">Expiring Soon</option>
+                    <option value="Expired">Expired</option>
+                  </select>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  Free drink on birthday - mobile app required
+                <td className="px-6 py-4 text-sm text-gray-500">
+                  <div contentEditable className="outline-none focus:ring-2 focus:ring-indigo-500 focus:rounded px-2 py-1">
+                    {redemption.notes}
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <button className="text-red-600 hover:text-red-900">
@@ -114,84 +225,9 @@ export default function Home() {
                   </button>
                 </td>
               </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="my-6">
-        <h2 className="text-2xl font-bold text-gray-900">Calendar View</h2>
-        <p className="mt-2 text-gray-600">
-          Perk schedule for April 2023
-        </p>
-      </div>
-
-      <div className="bg-white p-4 shadow sm:rounded-lg">
-        <div className="flex justify-between mb-4">
-          <button className="px-4 py-2 border border-gray-300 text-sm rounded-md flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-            Previous
-          </button>
-          <button className="px-4 py-2 border border-gray-300 text-sm rounded-md flex items-center">
-            Next
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-            </svg>
-          </button>
-        </div>
-        <div className="grid grid-cols-7 gap-px bg-gray-200">
-          <div className="bg-white p-2 text-center font-medium">Sun</div>
-          <div className="bg-white p-2 text-center font-medium">Mon</div>
-          <div className="bg-white p-2 text-center font-medium">Tue</div>
-          <div className="bg-white p-2 text-center font-medium">Wed</div>
-          <div className="bg-white p-2 text-center font-medium">Thu</div>
-          <div className="bg-white p-2 text-center font-medium">Fri</div>
-          <div className="bg-white p-2 text-center font-medium">Sat</div>
-          
-          {/* Calendar days - first row */}
-          <div className="bg-white p-2 h-24 border-t"></div>
-          <div className="bg-white p-2 h-24 border-t"></div>
-          <div className="bg-white p-2 h-24 border-t">
-            <div className="text-right">1</div>
-          </div>
-          <div className="bg-white p-2 h-24 border-t">
-            <div className="text-right">2</div>
-          </div>
-          <div className="bg-white p-2 h-24 border-t">
-            <div className="text-right">3</div>
-          </div>
-          <div className="bg-white p-2 h-24 border-t">
-            <div className="text-right">4</div>
-          </div>
-          <div className="bg-white p-2 h-24 border-t">
-            <div className="text-right">5</div>
-          </div>
-          
-          {/* Second row */}
-          <div className="bg-white p-2 h-24 border-t">
-            <div className="text-right">6</div>
-          </div>
-          <div className="bg-white p-2 h-24 border-t">
-            <div className="text-right">7</div>
-          </div>
-          <div className="bg-white p-2 h-24 border-t">
-            <div className="text-right">8</div>
-          </div>
-          <div className="bg-white p-2 h-24 border-t">
-            <div className="text-right">9</div>
-          </div>
-          <div className="bg-white p-2 h-24 border-t">
-            <div className="text-right">10</div>
-          </div>
-          <div className="bg-white p-2 h-24 border-t">
-            <div className="text-right">11</div>
-          </div>
-          <div className="bg-white p-2 h-24 border-t">
-            <div className="text-right">12</div>
-          </div>
-        </div>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
