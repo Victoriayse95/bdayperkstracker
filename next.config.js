@@ -9,10 +9,8 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Disable static optimization for pages with Firebase
-  experimental: {
-    outputStandalone: true,
-  },
+  // Use standalone output mode
+  output: 'standalone',
   env: {
     // Provide fallback values for build time
     NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'placeholder-api-key',
