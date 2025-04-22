@@ -22,6 +22,7 @@ export default function NewPerkPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDebugger, setShowDebugger] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -36,7 +37,17 @@ export default function NewPerkPage() {
     
     // Reset states
     setError(null);
+    setSuccess(null);
     setLoading(true);
+
+    // Set a timeout to handle stuck loading state
+    const loadingTimeout = setTimeout(() => {
+      if (loading) {
+        setLoading(false);
+        setError('The operation is taking longer than expected. Please check your Firebase connection and try again.');
+        setShowDebugger(true);
+      }
+    }, 15000);
 
     try {
       console.log('Submitting form data:', formData);
@@ -45,6 +56,7 @@ export default function NewPerkPage() {
       const requiredFields = ['business', 'category', 'startDate', 'expiry'];
       for (const field of requiredFields) {
         if (!formData[field as keyof typeof formData]) {
+          clearTimeout(loadingTimeout);
           throw new Error(`${field.charAt(0).toUpperCase() + field.slice(1)} is required`);
         }
       }
@@ -61,10 +73,27 @@ export default function NewPerkPage() {
       
       const perkId = await Promise.race([addPerkPromise, timeoutPromise]);
       console.log('Perk added successfully with ID:', perkId);
+
+      // Check if this is a mock ID (indicating Firebase is unavailable)
+      const isMockId = perkId.toString().startsWith('mock-');
       
-      // Redirect to perks list
-      router.push('/perks');
+      if (isMockId) {
+        clearTimeout(loadingTimeout);
+        setLoading(false);
+        setSuccess("Your perk has been saved locally. However, due to Firebase connection issues, it won't be persisted to the database. You can view it temporarily in the perks list.");
+        setTimeout(() => {
+          router.push('/perks');
+        }, 3000);
+      } else {
+        // Regular successful save
+        clearTimeout(loadingTimeout);
+        setSuccess("Perk added successfully!");
+        setTimeout(() => {
+          router.push('/perks');
+        }, 1000);
+      }
     } catch (err) {
+      clearTimeout(loadingTimeout);
       console.error('Detailed error in form submission:', err);
       
       // Show Firebase debugger if error occurs
@@ -83,8 +112,6 @@ export default function NewPerkPage() {
       } else {
         setError('An unexpected error occurred. Please check your connection and try again.');
       }
-    } finally {
-      // Always reset loading state
       setLoading(false);
     }
   };
@@ -104,6 +131,21 @@ export default function NewPerkPage() {
           </Link>
         </div>
       </div>
+
+      {success && (
+        <div className="mb-4 bg-green-50 p-4 rounded-md">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-green-700">{success}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 bg-red-50 p-4 rounded-md">
