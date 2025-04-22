@@ -13,13 +13,21 @@ export default function FirebaseInitializer() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Only run Firebase checks in the browser
+    if (typeof window === 'undefined') return;
+    
     try {
       // Check if Firebase is initialized
       if (app) {
         console.log('Firebase initialized successfully');
       } else {
-        console.error('Firebase app is undefined');
-        setError('Failed to initialize Firebase');
+        // Don't show error during development if it's just missing environment variables
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn('Firebase app is undefined - this is expected during development or build');
+        } else {
+          console.error('Firebase app is undefined in production');
+          setError('Failed to initialize Firebase');
+        }
       }
     } catch (err) {
       console.error('Error initializing Firebase:', err);
