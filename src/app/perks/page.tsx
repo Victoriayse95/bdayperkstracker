@@ -160,102 +160,104 @@ export default function PerksPage() {
             </div>
           </div>
 
-          <div className="overflow-hidden bg-white shadow border border-gray-200 sm:rounded-lg">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
-                    <span>Business Name</span>
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
-                    Redemption Phone
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
-                    Redemption Email
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
-                    Redemption Link
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
-                    Benefits
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
-                    Start Date
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
-                    Expiry Date
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
-                    Status
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Notes
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {perks.map((perk) => (
-                  <tr key={perk.id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {perk.business}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {perk.redemptionPhone}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {perk.redemptionEmail}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {perk.redemptionLink ? (
-                        <a href={perk.redemptionLink} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-900">
-                          {perk.redemptionLink.length > 25 ? `${perk.redemptionLink.substring(0, 25)}...` : perk.redemptionLink}
-                        </a>
-                      ) : '-'}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                      {perk.benefits || '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {perk.startDate}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {perk.expiry}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <select 
-                        value={perk.status}
-                        onChange={(e) => handleUpdate(perk.id!, { status: e.target.value as 'To Redeem' | 'Redeemed' | 'Expired' })}
-                        className={`px-2 text-xs leading-5 font-semibold rounded-full ${getStatusColor(perk.status)}`}
-                      >
-                        <option value="To Redeem">To Redeem</option>
-                        <option value="Redeemed">Redeemed</option>
-                        <option value="Expired">Expired</option>
-                      </select>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {perk.notes}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <Link 
-                        href={`/perks/${perk.id}/edit`}
-                        className="text-indigo-600 hover:text-indigo-900 mr-3"
-                      >
-                        Edit
-                      </Link>
-                      <button 
-                        onClick={() => handleDelete(perk.id!)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        Delete
-                      </button>
-                    </td>
+          <div className="overflow-x-auto w-full border border-gray-200 sm:rounded-lg shadow">
+            <div className="min-w-full">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
+                      <span>Business Name</span>
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
+                      Redemption Phone
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
+                      Redemption Email
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
+                      Redemption Link
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
+                      Benefits
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
+                      Start Date
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
+                      Expiry Date
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
+                      Status
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Notes
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {perks.map((perk) => (
+                    <tr key={perk.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {perk.business}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {perk.redemptionPhone}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {perk.redemptionEmail}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {perk.redemptionLink ? (
+                          <a href={perk.redemptionLink} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-900">
+                            {perk.redemptionLink.length > 25 ? `${perk.redemptionLink.substring(0, 25)}...` : perk.redemptionLink}
+                          </a>
+                        ) : '-'}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                        {perk.benefits || '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {perk.startDate}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {perk.expiry}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <select 
+                          value={perk.status}
+                          onChange={(e) => handleUpdate(perk.id!, { status: e.target.value as 'To Redeem' | 'Redeemed' | 'Expired' })}
+                          className={`px-2 text-xs leading-5 font-semibold rounded-full ${getStatusColor(perk.status)}`}
+                        >
+                          <option value="To Redeem">To Redeem</option>
+                          <option value="Redeemed">Redeemed</option>
+                          <option value="Expired">Expired</option>
+                        </select>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500">
+                        {perk.notes}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <Link 
+                          href={`/perks/${perk.id}/edit`}
+                          className="text-indigo-600 hover:text-indigo-900 mr-3"
+                        >
+                          Edit
+                        </Link>
+                        <button 
+                          onClick={() => handleDelete(perk.id!)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </>
       )}
