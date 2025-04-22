@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
@@ -13,13 +13,14 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:000000000000:web:0000000000000000000000',
 };
 
+// Log the environment variable status
 console.log('Firebase config loaded with:', {
-  apiKey: firebaseConfig.apiKey ? 'API_KEY_SET' : 'API_KEY_MISSING',
-  authDomain: firebaseConfig.authDomain ? firebaseConfig.authDomain : 'AUTH_DOMAIN_MISSING',
-  projectId: firebaseConfig.projectId ? firebaseConfig.projectId : 'PROJECT_ID_MISSING',
-  storageBucket: firebaseConfig.storageBucket ? firebaseConfig.storageBucket : 'STORAGE_BUCKET_MISSING',
-  messagingSenderId: firebaseConfig.messagingSenderId ? 'MESSAGING_SENDER_ID_SET' : 'MESSAGING_SENDER_ID_MISSING',
-  appId: firebaseConfig.appId ? 'APP_ID_SET' : 'APP_ID_MISSING',
+  apiKey: firebaseConfig.apiKey ? (firebaseConfig.apiKey === 'placeholder-api-key' ? 'PLACEHOLDER_USED' : 'API_KEY_SET') : 'API_KEY_MISSING',
+  authDomain: firebaseConfig.authDomain ? (firebaseConfig.authDomain === 'placeholder-app.firebaseapp.com' ? 'PLACEHOLDER_USED' : firebaseConfig.authDomain) : 'AUTH_DOMAIN_MISSING',
+  projectId: firebaseConfig.projectId ? (firebaseConfig.projectId === 'placeholder-app' ? 'PLACEHOLDER_USED' : firebaseConfig.projectId) : 'PROJECT_ID_MISSING',
+  storageBucket: firebaseConfig.storageBucket ? (firebaseConfig.storageBucket === 'placeholder-app.appspot.com' ? 'PLACEHOLDER_USED' : firebaseConfig.storageBucket) : 'STORAGE_BUCKET_MISSING',
+  messagingSenderId: firebaseConfig.messagingSenderId ? (firebaseConfig.messagingSenderId === '000000000000' ? 'PLACEHOLDER_USED' : 'MESSAGING_SENDER_ID_SET') : 'MESSAGING_SENDER_ID_MISSING',
+  appId: firebaseConfig.appId ? (firebaseConfig.appId === '1:000000000000:web:0000000000000000000000' ? 'PLACEHOLDER_USED' : 'APP_ID_SET') : 'APP_ID_MISSING',
 });
 
 // Only initialize Firebase if we're in the browser and not during SSG/SSR
@@ -32,6 +33,22 @@ const initializeFirebase = () => {
       return { app: null, db: null, auth: null, storage: null };
     }
     
+    // Verify essential config values
+    const essentialValues = [
+      { name: 'apiKey', value: firebaseConfig.apiKey },
+      { name: 'projectId', value: firebaseConfig.projectId },
+      { name: 'appId', value: firebaseConfig.appId },
+    ];
+    
+    const missingValues = essentialValues
+      .filter(item => !item.value || item.value.includes('placeholder'))
+      .map(item => item.name);
+    
+    if (missingValues.length > 0) {
+      console.error(`Firebase initialization error: Missing essential configuration values: ${missingValues.join(', ')}`);
+      return { app: null, db: null, auth: null, storage: null };
+    }
+    
     try {
       // Initialize Firebase only if not already initialized
       const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
@@ -40,6 +57,13 @@ const initializeFirebase = () => {
       const storage = getStorage(app);
       
       console.log('Firebase initialized successfully!');
+      
+      // Use Firestore emulator in development if needed
+      // if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true') {
+      //   connectFirestoreEmulator(db, 'localhost', 8080);
+      //   console.log('Connected to Firestore emulator');
+      // }
+      
       return { app, db, auth, storage };
     } catch (error) {
       console.error('Error initializing Firebase:', error);
@@ -54,5 +78,31 @@ const initializeFirebase = () => {
 
 // Initialize Firebase
 const { app, db, auth, storage } = initializeFirebase();
+
+// Export a function to check Firebase connectivity
+export const checkFirebaseConnection = async () => {
+  if (!app || !db) {
+    return { connected: false, message: 'Firebase is not initialized' };
+  }
+  
+  try {
+    const timeout = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Firebase connection timeout')), 10000)
+    );
+    
+    // Attempt a simple ping
+    const result = await Promise.race([
+      Promise.resolve({ connected: true, message: 'Firebase connected successfully' }),
+      timeout
+    ]);
+    
+    return result;
+  } catch (error) {
+    return { 
+      connected: false, 
+      message: `Firebase connection error: ${error instanceof Error ? error.message : 'Unknown error'}` 
+    };
+  }
+};
 
 export { app, db, auth, storage }; 

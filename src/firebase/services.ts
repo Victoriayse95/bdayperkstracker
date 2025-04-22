@@ -151,13 +151,32 @@ export const addPerk = async (perk: Omit<Perk, 'id'>): Promise<string> => {
       throw new Error('Database connection error. Please try again later.');
     }
     
-    console.log('Adding document to Firestore with data:', { ...perk, createdAt: 'now', updatedAt: 'now' });
+    // Validate data structure
+    const requiredFields = ['business', 'category', 'startDate', 'expiry', 'status'];
+    const missingFields = requiredFields.filter(field => !perk[field as keyof typeof perk]);
     
-    const docRef = await addDoc(perksCollection, {
+    if (missingFields.length > 0) {
+      throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+    }
+    
+    // Clean and prepare the data
+    const cleanedPerk = {
       ...perk,
+      business: String(perk.business).trim(),
+      category: String(perk.category).trim(),
+      status: perk.status || 'To Redeem',
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()
+    };
+    
+    console.log('Adding document to Firestore with data:', { 
+      ...cleanedPerk, 
+      createdAt: 'now', 
+      updatedAt: 'now' 
     });
+    
+    // Attempt to add the document with timeout handling
+    const docRef = await addDoc(perksCollection, cleanedPerk);
     
     console.log('Document added successfully with ID:', docRef.id);
     return docRef.id;
@@ -171,6 +190,10 @@ export const addPerk = async (perk: Omit<Perk, 'id'>): Promise<string> => {
         throw new Error('Firestore service is currently unavailable. Please try again later.');
       } else if (error.message.includes('unauthenticated')) {
         throw new Error('Authentication required. Please sign in to add perks.');
+      } else if (error.message.includes('quota-exceeded')) {
+        throw new Error('Firebase quota exceeded. Please try again later.');
+      } else if (error.message.includes('invalid-argument')) {
+        throw new Error('Invalid data format. Please check your input and try again.');
       } else {
         throw new Error(`Failed to add perk: ${error.message}`);
       }
