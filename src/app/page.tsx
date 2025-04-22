@@ -347,7 +347,7 @@ export default function Home() {
                 <h2 className="text-xl font-bold mb-4">Lesson schedule</h2>
                 <div className="mb-4">
                   <Calendar
-                    onDateSelect={(date) => {}} 
+                    onDateSelect={(_) => {}} 
                     highlightedDates={activeDates}
                   />
                 </div>
