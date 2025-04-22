@@ -2,59 +2,6 @@
 
 import Link from 'next/link';
 
-// Sample redemption data - in a real app, this would come from Firebase
-const currentDate = new Date();
-const currentMonth = currentDate.getMonth();
-const currentYear = currentDate.getFullYear();
-
-const sampleRedemptions = [
-  {
-    id: 1,
-    name: "Starbucks Birthday Drink",
-    perks: "Free drink of your choice",
-    redemptionMonth: currentMonth, // Current month
-    redemptionDateFrom: `${currentMonth + 1}/01/${currentYear}`,
-    redemptionDateTo: `${currentMonth + 1}/30/${currentYear}`,
-    contactNumber: "555-123-4567",
-    emailAddress: "info@starbucks.com",
-    terms: "Must be a Starbucks Rewards member. Show app.",
-    redemptionLink: "https://starbucks.com/rewards",
-    signUpLink: "https://starbucks.com/rewards/signup",
-    notes: "Mobile app required for redemption",
-    status: "To Redeem"
-  },
-  {
-    id: 2,
-    name: "Sephora Beauty Insider Gift",
-    perks: "Free beauty gift during birthday month",
-    redemptionMonth: currentMonth, // Current month
-    redemptionDateFrom: `${currentMonth + 1}/01/${currentYear}`,
-    redemptionDateTo: `${currentMonth + 1}/05/${currentYear}`, // Expiring soon (within 7 days)
-    contactNumber: "555-567-8901",
-    emailAddress: "info@sephora.com",
-    terms: "Must be a Beauty Insider member. Valid in-store or online.",
-    redemptionLink: "https://sephora.com/beauty-insider",
-    signUpLink: "https://sephora.com/beauty-insider/signup",
-    notes: "Choose from skincare or makeup option",
-    status: "Expiring Soon"
-  },
-  {
-    id: 3,
-    name: "Baskin-Robbins Free Scoop",
-    perks: "Free ice cream scoop",
-    redemptionMonth: currentMonth, // Current month
-    redemptionDateFrom: `${currentMonth + 1}/01/${currentYear}`,
-    redemptionDateTo: `${currentMonth + 1}/30/${currentYear}`,
-    contactNumber: "555-345-6789",
-    emailAddress: "info@baskinrobbins.com",
-    terms: "Join birthday club for redemption",
-    redemptionLink: "https://baskinrobbins.com/birthday",
-    signUpLink: "https://baskinrobbins.com/signup",
-    notes: "Any flavor, single scoop only",
-    status: "Redeemed"
-  }
-];
-
 export default function Home() {
   return (
     <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
