@@ -21,7 +21,7 @@ export interface Perk {
   id?: string;
   business: string;
   contact?: string;
-  category: string;
+  category?: string;
   startDate: string;
   expiry: string;
   redemptionPhone: string;
@@ -205,7 +205,7 @@ export const addPerk = async (perk: Omit<Perk, 'id'>): Promise<string> => {
     }
     
     // Validate data structure
-    const requiredFields = ['business', 'category', 'startDate', 'expiry', 'status'];
+    const requiredFields = ['business', 'startDate', 'expiry', 'status'];
     const missingFields = requiredFields.filter(field => !perk[field as keyof typeof perk]);
     
     if (missingFields.length > 0) {
@@ -216,7 +216,6 @@ export const addPerk = async (perk: Omit<Perk, 'id'>): Promise<string> => {
     const cleanedPerk = {
       ...perk,
       business: String(perk.business).trim(),
-      category: String(perk.category).trim(),
       status: perk.status || 'To Redeem',
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now()

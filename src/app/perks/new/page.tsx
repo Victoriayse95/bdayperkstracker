@@ -10,7 +10,6 @@ export default function NewPerkPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     business: '',
-    category: '',
     startDate: '',
     expiry: '',
     redemptionPhone: '',
@@ -54,7 +53,7 @@ export default function NewPerkPage() {
       console.log('Submitting form data:', formData);
       
       // Validate form
-      const requiredFields = ['business', 'category', 'startDate', 'expiry'];
+      const requiredFields = ['business', 'startDate', 'expiry'];
       for (const field of requiredFields) {
         if (!formData[field as keyof typeof formData]) {
           clearTimeout(loadingTimeout);
@@ -195,31 +194,6 @@ export default function NewPerkPage() {
           </div>
 
           <div className="sm:col-span-3">
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700">
-              Category*
-            </label>
-            <div className="mt-1">
-              <select
-                id="category"
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                required
-              >
-                <option value="">Select a category</option>
-                <option value="Food & Dessert">Food & Dessert</option>
-                <option value="Coffee & Drinks">Coffee & Drinks</option>
-                <option value="Beauty">Beauty</option>
-                <option value="Restaurants">Restaurants</option>
-                <option value="Retail">Retail</option>
-                <option value="Entertainment">Entertainment</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="sm:col-span-3">
             <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
               Start Date*
             </label>
@@ -250,6 +224,25 @@ export default function NewPerkPage() {
                 className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                 required
               />
+            </div>
+          </div>
+
+          <div className="sm:col-span-3">
+            <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+              Status
+            </label>
+            <div className="mt-1">
+              <select
+                id="status"
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              >
+                <option value="To Redeem">To Redeem</option>
+                <option value="Redeemed">Redeemed</option>
+                <option value="Expired">Expired</option>
+              </select>
             </div>
           </div>
 
@@ -287,7 +280,7 @@ export default function NewPerkPage() {
             </div>
           </div>
 
-          <div className="sm:col-span-3">
+          <div className="sm:col-span-6">
             <label htmlFor="redemptionLink" className="block text-sm font-medium text-gray-700">
               Redemption Link
             </label>
@@ -301,25 +294,6 @@ export default function NewPerkPage() {
                 placeholder="https://example.com/redeem"
                 className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
               />
-            </div>
-          </div>
-
-          <div className="sm:col-span-3">
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700">
-              Status
-            </label>
-            <div className="mt-1">
-              <select
-                id="status"
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-              >
-                <option value="To Redeem">To Redeem</option>
-                <option value="Redeemed">Redeemed</option>
-                <option value="Expired">Expired</option>
-              </select>
             </div>
           </div>
 
