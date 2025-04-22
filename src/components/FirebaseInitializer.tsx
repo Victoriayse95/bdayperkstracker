@@ -9,7 +9,7 @@ import { app } from '../firebase/config';
  * is properly initialized before the app fully loads
  */
 export default function FirebaseInitializer() {
-  const [initialized, setInitialized] = useState(false);
+  // Only keep the error state
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -17,7 +17,6 @@ export default function FirebaseInitializer() {
       // Check if Firebase is initialized
       if (app) {
         console.log('Firebase initialized successfully');
-        setInitialized(true);
       } else {
         console.error('Firebase app is undefined');
         setError('Failed to initialize Firebase');
