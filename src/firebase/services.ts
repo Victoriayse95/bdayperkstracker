@@ -26,6 +26,8 @@ export interface Perk {
   expiry: string;
   redemptionPhone: string;
   redemptionEmail: string;
+  redemptionLink?: string;
+  benefits?: string;
   status: 'To Redeem' | 'Redeemed' | 'Expired';
   notes: string;
   createdAt?: Timestamp;
@@ -42,6 +44,8 @@ export const samplePerks: Perk[] = [
     expiry: "04/26/2023",
     redemptionPhone: "800-782-7282",
     redemptionEmail: "support@starbucks.com",
+    redemptionLink: "https://www.starbucks.com/rewards",
+    benefits: "Free handcrafted drink of your choice",
     status: "To Redeem",
     notes: "Free drink on birthday - mobile app required"
   },
@@ -53,6 +57,8 @@ export const samplePerks: Perk[] = [
     expiry: "04/30/2023",
     redemptionPhone: "877-737-4672",
     redemptionEmail: "customerservice@sephora.com",
+    redemptionLink: "https://www.sephora.com/beauty-insider",
+    benefits: "Free birthday gift set with any purchase",
     status: "To Redeem",
     notes: "Free beauty gift - Beauty Insider membership required"
   },
@@ -64,6 +70,8 @@ export const samplePerks: Perk[] = [
     expiry: "04/20/2023",
     redemptionPhone: "800-859-5339",
     redemptionEmail: "support@baskinrobbins.com",
+    redemptionLink: "https://www.baskinrobbins.com/birthday-club",
+    benefits: "Free ice cream scoop (any flavor)",
     status: "Expired",
     notes: "Free ice cream scoop - birthday club membership needed"
   }

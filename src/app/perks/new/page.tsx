@@ -15,6 +15,8 @@ export default function NewPerkPage() {
     expiry: '',
     redemptionPhone: '',
     redemptionEmail: '',
+    redemptionLink: '',
+    benefits: '',
     status: 'To Redeem' as 'To Redeem' | 'Redeemed' | 'Expired',
     notes: ''
   });
@@ -286,6 +288,23 @@ export default function NewPerkPage() {
           </div>
 
           <div className="sm:col-span-3">
+            <label htmlFor="redemptionLink" className="block text-sm font-medium text-gray-700">
+              Redemption Link
+            </label>
+            <div className="mt-1">
+              <input
+                type="url"
+                name="redemptionLink"
+                id="redemptionLink"
+                value={formData.redemptionLink}
+                onChange={handleChange}
+                placeholder="https://example.com/redeem"
+                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+              />
+            </div>
+          </div>
+
+          <div className="sm:col-span-3">
             <label htmlFor="status" className="block text-sm font-medium text-gray-700">
               Status
             </label>
@@ -301,6 +320,23 @@ export default function NewPerkPage() {
                 <option value="Redeemed">Redeemed</option>
                 <option value="Expired">Expired</option>
               </select>
+            </div>
+          </div>
+
+          <div className="sm:col-span-6">
+            <label htmlFor="benefits" className="block text-sm font-medium text-gray-700">
+              Benefits
+            </label>
+            <div className="mt-1">
+              <textarea
+                id="benefits"
+                name="benefits"
+                rows={2}
+                value={formData.benefits}
+                onChange={handleChange}
+                placeholder="Describe the benefits offered (e.g., Free dessert, $10 gift card)"
+                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border border-gray-300 rounded-md"
+              />
             </div>
           </div>
 
