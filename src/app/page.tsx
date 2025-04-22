@@ -66,7 +66,6 @@ const currentMonthRedemptions = sampleRedemptions.filter(
 
 export default function Home() {
   const [redemptions, setRedemptions] = useState(currentMonthRedemptions);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [activeDates, setActiveDates] = useState<Date[]>([]);
 
   // Set active dates on component mount
@@ -348,7 +347,7 @@ export default function Home() {
                 <h2 className="text-xl font-bold mb-4">Lesson schedule</h2>
                 <div className="mb-4">
                   <Calendar
-                    onDateSelect={setSelectedDate}
+                    onDateSelect={(date) => {}} 
                     highlightedDates={activeDates}
                   />
                 </div>
@@ -362,7 +361,7 @@ export default function Home() {
                         </svg>
                       </div>
                       <div>
-                        <h3 className="font-medium text-sm">Webinar 'How to create a web hierarchy?'</h3>
+                        <h3 className="font-medium text-sm">Webinar &quot;How to create a web hierarchy?&quot;</h3>
                       </div>
                     </div>
                   </div>
@@ -375,7 +374,7 @@ export default function Home() {
                         </svg>
                       </div>
                       <div>
-                        <h3 className="font-medium text-sm">Lesson 'Client psychology and communication strategy?'</h3>
+                        <h3 className="font-medium text-sm">Lesson &quot;Client psychology and communication strategy?&quot;</h3>
                       </div>
                     </div>
                   </div>
@@ -388,7 +387,7 @@ export default function Home() {
                         </svg>
                       </div>
                       <div>
-                        <h3 className="font-medium text-sm">Lesson 'Colour gradients and their use in UI'</h3>
+                        <h3 className="font-medium text-sm">Lesson &quot;Colour gradients and their use in UI&quot;</h3>
                       </div>
                     </div>
                   </div>
