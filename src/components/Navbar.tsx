@@ -8,7 +8,11 @@ export default function Navbar() {
   
   const navItems = [
     { name: 'Home', href: '/' },
-    { name: 'Birthday Perks', href: '/perks' },
+    { name: 'Browse Perks', href: '/perks' },
+    { name: 'Personal Tracker', href: '/tracker' },
+    { name: 'Reminders', href: '/reminders' },
+    { name: 'Redemption Tracking', href: '/redemptions' },
+    { name: 'Discovery', href: '/discovery' },
     { name: 'My Favorites', href: '/favorites' },
     { name: 'About', href: '/about' },
   ];
@@ -21,7 +25,7 @@ export default function Navbar() {
             <div className="flex-shrink-0 flex items-center">
               <span className="text-cyan-600 font-bold text-xl">Birthday Perks Tracker</span>
             </div>
-            <div className="hidden sm:block sm:ml-6">
+            <div className="hidden lg:block sm:ml-6">
               <div className="flex space-x-4">
                 {navItems.map((item) => {
                   const isActive = pathname === item.href;
@@ -47,7 +51,7 @@ export default function Navbar() {
       </div>
       
       {/* Mobile menu */}
-      <div className="sm:hidden">
+      <div className="lg:hidden">
         <div className="px-2 pt-2 pb-3 space-y-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href;

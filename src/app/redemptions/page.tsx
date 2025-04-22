@@ -4,350 +4,359 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/solid';
 
-// Sample redemption data - in a real app, this would come from Firebase
-const currentDate = new Date();
-const currentMonth = currentDate.getMonth();
-const currentYear = currentDate.getFullYear();
-
+// TypeScript interfaces
 interface Redemption {
   id: number;
-  name: string;
-  perks: string;
-  redemptionMonth: number;
-  redemptionDateFrom: string;
-  redemptionDateTo: string;
-  contactNumber: string;
-  emailAddress: string;
-  terms: string;
-  redemptionLink: string;
-  signUpLink: string;
+  business: string;
+  perk: string;
+  expiryDate: string;
+  redeemed: boolean;
+  redemptionDate: string | null;
+  requirements: string;
   notes: string;
-  status: string;
+  value: string;
 }
 
-const sampleRedemptions: Redemption[] = [
-  {
-    id: 1,
-    name: "Starbucks Birthday Drink",
-    perks: "Free drink of your choice",
-    redemptionMonth: currentMonth, // Current month
-    redemptionDateFrom: `${currentMonth + 1}/01/${currentYear}`,
-    redemptionDateTo: `${currentMonth + 1}/30/${currentYear}`,
-    contactNumber: "555-123-4567",
-    emailAddress: "info@starbucks.com",
-    terms: "Must be a Starbucks Rewards member. Show app.",
-    redemptionLink: "https://starbucks.com/rewards",
-    signUpLink: "https://starbucks.com/rewards/signup",
-    notes: "Mobile app required for redemption",
-    status: "To Redeem"
-  },
-  {
-    id: 2,
-    name: "Sephora Beauty Insider Gift",
-    perks: "Free beauty gift during birthday month",
-    redemptionMonth: currentMonth, // Current month
-    redemptionDateFrom: `${currentMonth + 1}/01/${currentYear}`,
-    redemptionDateTo: `${currentMonth + 1}/05/${currentYear}`, // Expiring soon (within 7 days)
-    contactNumber: "555-567-8901",
-    emailAddress: "info@sephora.com",
-    terms: "Must be a Beauty Insider member. Valid in-store or online.",
-    redemptionLink: "https://sephora.com/beauty-insider",
-    signUpLink: "https://sephora.com/beauty-insider/signup",
-    notes: "Choose from skincare or makeup option",
-    status: "Expiring Soon"
-  },
-  {
-    id: 3,
-    name: "Baskin-Robbins Free Scoop",
-    perks: "Free ice cream scoop",
-    redemptionMonth: currentMonth, // Current month
-    redemptionDateFrom: `${currentMonth + 1}/01/${currentYear}`,
-    redemptionDateTo: `${currentMonth + 1}/30/${currentYear}`,
-    contactNumber: "555-345-6789",
-    emailAddress: "info@baskinrobbins.com",
-    terms: "Join birthday club for redemption",
-    redemptionLink: "https://baskinrobbins.com/birthday",
-    signUpLink: "https://baskinrobbins.com/signup",
-    notes: "Any flavor, single scoop only",
-    status: "Redeemed"
-  },
-  {
-    id: 4,
-    name: "Ulta Beauty Birthday Gift",
-    perks: "Free birthday gift with any purchase",
-    redemptionMonth: currentMonth - 1, // Last month (expired)
-    redemptionDateFrom: `${currentMonth}/01/${currentYear}`,
-    redemptionDateTo: `${currentMonth}/30/${currentYear}`,
-    contactNumber: "555-234-5678",
-    emailAddress: "info@ulta.com",
-    terms: "Must be Ultamate Rewards member",
-    redemptionLink: "https://ulta.com/rewards",
-    signUpLink: "https://ulta.com/rewards/signup",
-    notes: "Gift changes quarterly",
-    status: "Expired"
-  },
-  {
-    id: 5,
-    name: "Cheesecake Factory Birthday Slice",
-    perks: "Free slice of cheesecake",
-    redemptionMonth: currentMonth + 1, // Next month
-    redemptionDateFrom: `${currentMonth + 2}/01/${currentYear}`,
-    redemptionDateTo: `${currentMonth + 2}/30/${currentYear}`,
-    contactNumber: "555-789-0123",
-    emailAddress: "info@cheesecakefactory.com",
-    terms: "Valid with purchase of an entree. Bring ID.",
-    redemptionLink: "https://cheesecakefactory.com/birthday",
-    signUpLink: "https://cheesecakefactory.com/signup",
-    notes: "Valid for any cheesecake flavor",
-    status: "To Redeem"
-  }
-];
-
-export default function AllRedemptionsPage() {
-  const [redemptions, setRedemptions] = useState(sampleRedemptions);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortColumn, setSortColumn] = useState('name');
-  const [sortDirection, setSortDirection] = useState('asc');
-  
-  // Handle search
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
-
-  // Filter redemptions based on search term
-  const filteredRedemptions = redemptions.filter(redemption => 
-    redemption.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    redemption.perks.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    redemption.notes.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    redemption.contactNumber.includes(searchTerm) ||
-    redemption.emailAddress.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Handle column sort
-  const handleSort = (column: string) => {
-    if (sortColumn === column) {
-      // Toggle direction if clicking the same column
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      // New column, default to ascending
-      setSortColumn(column);
-      setSortDirection('asc');
+export default function RedemptionTrackingPage() {
+  const [redemptions, setRedemptions] = useState<Redemption[]>([
+    {
+      id: 1,
+      business: "Starbucks",
+      perk: "Free birthday drink",
+      expiryDate: "2023-05-15",
+      redeemed: false,
+      redemptionDate: null,
+      requirements: "Starbucks Rewards membership required",
+      notes: "Mobile app required for redemption",
+      value: "$5-7"
+    },
+    {
+      id: 2,
+      business: "Sephora",
+      perk: "Free beauty gift",
+      expiryDate: "2023-05-15",
+      redeemed: true,
+      redemptionDate: "2023-05-10",
+      requirements: "Beauty Insider membership required",
+      notes: "Chose the skincare set option",
+      value: "$10"
+    },
+    {
+      id: 3,
+      business: "Baskin-Robbins",
+      perk: "Free ice cream scoop",
+      expiryDate: "2023-04-30",
+      redeemed: false,
+      redemptionDate: null,
+      requirements: "Birthday club membership required",
+      notes: "Valid for a single scoop only",
+      value: "$3"
     }
-  };
+  ]);
 
-  // Sort redemptions based on column and direction
-  const sortedRedemptions = [...filteredRedemptions].sort((a: Redemption, b: Redemption) => {
-    const valueA = a[sortColumn as keyof Redemption];
-    const valueB = b[sortColumn as keyof Redemption];
-    
-    if (valueA < valueB) {
-      return sortDirection === 'asc' ? -1 : 1;
-    }
-    if (valueA > valueB) {
-      return sortDirection === 'asc' ? 1 : -1;
-    }
-    return 0;
+  // For the redemption form
+  const [formData, setFormData] = useState<Redemption>({
+    id: 0,
+    business: "",
+    perk: "",
+    expiryDate: "",
+    redeemed: false,
+    redemptionDate: null,
+    requirements: "",
+    notes: "",
+    value: ""
   });
 
-  // Function to update redemption status
-  const updateStatus = (id: number, newStatus: string) => {
-    setRedemptions(prev => 
-      prev.map(redemption => 
-        redemption.id === id ? {...redemption, status: newStatus} : redemption
-      )
-    );
-  };
-
-  // Function to delete a redemption
-  const deleteRedemption = (id: number) => {
-    if (confirm('Are you sure you want to delete this redemption?')) {
-      setRedemptions(prev => prev.filter(redemption => redemption.id !== id));
-    }
-  };
-
-  // Get status class based on status value
-  const getStatusClass = (status: string) => {
-    switch(status) {
-      case 'To Redeem':
-        return 'status-to-redeem';
-      case 'Redeemed':
-        return 'status-redeemed';
-      case 'Expired':
-        return 'status-expired';
-      case 'Expiring Soon':
-        return 'status-expiring';
-      default:
-        return 'status-to-redeem';
-    }
-  };
-
-  // Get sort indicator
-  const getSortIndicator = (column: string) => {
-    if (sortColumn !== column) return null;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    const checked = type === 'checkbox' ? (e.target as HTMLInputElement).checked : undefined;
     
-    return sortDirection === 'asc' 
-      ? <ChevronUpIcon className="inline h-4 w-4 ml-1" />
-      : <ChevronDownIcon className="inline h-4 w-4 ml-1" />;
+    // Special handling for the redemption checkbox
+    if (name === 'redeemed') {
+      setFormData({
+        ...formData,
+        redeemed: checked || false,
+        redemptionDate: checked ? new Date().toISOString().split('T')[0] : null
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: type === 'checkbox' ? checked : value
+      });
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Add new redemption with a unique ID
+    setRedemptions([
+      ...redemptions,
+      {
+        ...formData,
+        id: Date.now()
+      }
+    ]);
+    
+    // Reset the form
+    setFormData({
+      id: 0,
+      business: "",
+      perk: "",
+      expiryDate: "",
+      redeemed: false,
+      redemptionDate: null,
+      requirements: "",
+      notes: "",
+      value: ""
+    });
+  };
+
+  // Mark an existing redemption as redeemed
+  const handleMarkRedeemed = (id: number) => {
+    setRedemptions(redemptions.map(item => 
+      item.id === id 
+        ? { ...item, redeemed: true, redemptionDate: new Date().toISOString().split('T')[0] } 
+        : item
+    ));
+  };
+  
+  // Calculate days until expiry
+  const getDaysUntilExpiry = (dateString: string): number => {
+    const today = new Date();
+    const expiryDate = new Date(dateString);
+    const timeDiff = expiryDate.getTime() - today.getTime();
+    return Math.ceil(timeDiff / (1000 * 3600 * 24));
   };
 
   return (
-    <div className="app-container pb-10">
-      <div className="my-6">
-        <h1 className="text-3xl font-bold text-gray-900">All Redemptions</h1>
-        <p className="mt-2 text-gray-600">
-          Manage and view all birthday perk redemptions
-        </p>
+    <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Redemption Tracking</h1>
+        <p className="text-lg text-gray-600">Keep track of redemption dates and requirements</p>
       </div>
-
-      <div className="flex justify-between items-center mb-6">
-        <div className="w-80 relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-          <input
-            type="text"
-            placeholder="Search redemptions..."
-            value={searchTerm}
-            onChange={handleSearch}
-            className="pl-10 pr-4 py-2 border border-gray-200 rounded-full bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent w-full"
-          />
-        </div>
-        <Link
-          href="/redemptions/new"
-          className="btn-primary flex items-center"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-          </svg>
-          Add New Redemption
-        </Link>
-      </div>
-
-      <div className="table-container">
-        <table className="pastel-table">
-          <thead>
-            <tr>
-              <th
-                onClick={() => handleSort('name')}
-                className="cursor-pointer"
-              >
-                Name {getSortIndicator('name')}
-              </th>
-              <th
-                onClick={() => handleSort('perks')}
-                className="cursor-pointer"
-              >
-                Perks {getSortIndicator('perks')}
-              </th>
-              <th
-                onClick={() => handleSort('redemptionDateFrom')}
-                className="cursor-pointer"
-              >
-                Valid From {getSortIndicator('redemptionDateFrom')}
-              </th>
-              <th
-                onClick={() => handleSort('redemptionDateTo')}
-                className="cursor-pointer"
-              >
-                Valid To {getSortIndicator('redemptionDateTo')}
-              </th>
-              <th
-                onClick={() => handleSort('contactNumber')}
-                className="cursor-pointer"
-              >
-                Contact {getSortIndicator('contactNumber')}
-              </th>
-              <th
-                onClick={() => handleSort('status')}
-                className="cursor-pointer"
-              >
-                Status {getSortIndicator('status')}
-              </th>
-              <th>
+      
+      {/* Add New Redemption Item Form */}
+      <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        <h2 className="text-xl font-semibold mb-4">Add New Redemption Item</h2>
+        
+        <form onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="business" className="block text-sm font-medium text-gray-700 mb-1">
+                Business Name
+              </label>
+              <input
+                type="text"
+                id="business"
+                name="business"
+                value={formData.business}
+                onChange={handleInputChange}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="perk" className="block text-sm font-medium text-gray-700 mb-1">
+                Perk Description
+              </label>
+              <input
+                type="text"
+                id="perk"
+                name="perk"
+                value={formData.perk}
+                onChange={handleInputChange}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700 mb-1">
+                Expiry Date
+              </label>
+              <input
+                type="date"
+                id="expiryDate"
+                name="expiryDate"
+                value={formData.expiryDate}
+                onChange={handleInputChange}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="value" className="block text-sm font-medium text-gray-700 mb-1">
+                Estimated Value
+              </label>
+              <input
+                type="text"
+                id="value"
+                name="value"
+                value={formData.value}
+                onChange={handleInputChange}
+                placeholder="e.g. $5, $10-15"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            
+            <div>
+              <label htmlFor="requirements" className="block text-sm font-medium text-gray-700 mb-1">
+                Requirements
+              </label>
+              <input
+                type="text"
+                id="requirements"
+                name="requirements"
+                value={formData.requirements}
+                onChange={handleInputChange}
+                placeholder="e.g. Membership required"
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="redeemed"
+                name="redeemed"
+                checked={formData.redeemed}
+                onChange={handleInputChange}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label htmlFor="redeemed" className="ml-2 block text-sm text-gray-700">
+                Already Redeemed
+              </label>
+            </div>
+            
+            <div className="md:col-span-2">
+              <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
                 Notes
-              </th>
-              <th className="text-right">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedRedemptions.map((redemption) => (
-              <tr key={redemption.id}>
-                <td>
-                  <div contentEditable className="outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:rounded p-1 font-medium text-gray-900">
-                    {redemption.name}
-                  </div>
-                </td>
-                <td>
-                  <div contentEditable className="outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:rounded p-1 text-gray-500">
-                    {redemption.perks}
-                  </div>
-                </td>
-                <td>
-                  <div contentEditable className="outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:rounded p-1 text-gray-500">
-                    {redemption.redemptionDateFrom}
-                  </div>
-                </td>
-                <td>
-                  <div contentEditable className="outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:rounded p-1 text-gray-500">
-                    {redemption.redemptionDateTo}
-                  </div>
-                </td>
-                <td>
-                  <div className="text-gray-500">
-                    <div contentEditable className="outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:rounded p-1">
-                      {redemption.contactNumber}
+              </label>
+              <textarea
+                id="notes"
+                name="notes"
+                value={formData.notes}
+                onChange={handleInputChange}
+                rows={3}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              ></textarea>
+            </div>
+          </div>
+          
+          <div className="mt-6">
+            <button
+              type="submit"
+              className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-lg shadow-md hover:from-green-600 hover:to-emerald-700 transition-all duration-200"
+            >
+              Add Redemption Item
+            </button>
+          </div>
+        </form>
+      </div>
+      
+      {/* Redemption Tracking List */}
+      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Redemption Items</h2>
+          <div className="flex space-x-4">
+            <button className="text-sm text-indigo-600 hover:text-indigo-800">All</button>
+            <button className="text-sm text-gray-500 hover:text-gray-700">To Redeem</button>
+            <button className="text-sm text-gray-500 hover:text-gray-700">Redeemed</button>
+          </div>
+        </div>
+        
+        {redemptions.length > 0 ? (
+          <div className="divide-y divide-gray-200">
+            {redemptions.map((item) => {
+              const daysUntilExpiry = getDaysUntilExpiry(item.expiryDate);
+              const isExpired = daysUntilExpiry < 0;
+              const isExpiringSoon = daysUntilExpiry >= 0 && daysUntilExpiry <= 7;
+              
+              return (
+                <div key={item.id} className="p-6 flex flex-col md:flex-row">
+                  <div className="flex-1">
+                    <div className="flex items-start">
+                      <div className={`mt-1 mr-4 flex-shrink-0 w-3 h-3 rounded-full ${
+                        item.redeemed 
+                          ? 'bg-green-500' 
+                          : isExpired 
+                            ? 'bg-gray-400' 
+                            : isExpiringSoon 
+                              ? 'bg-yellow-500' 
+                              : 'bg-blue-500'
+                      }`}></div>
+                      
+                      <div>
+                        <h3 className="text-lg font-medium text-gray-900">{item.business}</h3>
+                        <p className="mt-1 text-sm text-gray-500">{item.perk}</p>
+                        
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            {item.value ? `Value: ${item.value}` : 'No value specified'}
+                          </span>
+                          
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            item.redeemed 
+                              ? 'bg-green-100 text-green-800' 
+                              : isExpired 
+                                ? 'bg-gray-100 text-gray-800' 
+                                : isExpiringSoon 
+                                  ? 'bg-yellow-100 text-yellow-800' 
+                                  : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {item.redeemed 
+                              ? `Redeemed on ${new Date(item.redemptionDate!).toLocaleDateString()}` 
+                              : isExpired 
+                                ? 'Expired' 
+                                : `Expires ${daysUntilExpiry === 0 ? 'today' : `in ${daysUntilExpiry} days`}`}
+                          </span>
+                        </div>
+                        
+                        {item.requirements && (
+                          <p className="mt-2 text-xs text-gray-500">
+                            <span className="font-medium">Requirements:</span> {item.requirements}
+                          </p>
+                        )}
+                        
+                        {item.notes && (
+                          <p className="mt-1 text-xs text-gray-500">
+                            <span className="font-medium">Notes:</span> {item.notes}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <div contentEditable className="outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:rounded p-1 text-xs text-gray-400">
-                      {redemption.emailAddress}
-                    </div>
                   </div>
-                </td>
-                <td>
-                  <select 
-                    className={`status-badge ${getStatusClass(redemption.status)} border-0 outline-none cursor-pointer`}
-                    value={redemption.status}
-                    onChange={(e) => updateStatus(redemption.id, e.target.value)}
-                  >
-                    <option value="To Redeem">To Redeem</option>
-                    <option value="Redeemed">Redeemed</option>
-                    <option value="Expiring Soon">Expiring Soon</option>
-                    <option value="Expired">Expired</option>
-                  </select>
-                </td>
-                <td>
-                  <div contentEditable className="outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:rounded p-1 text-gray-500">
-                    {redemption.notes}
-                  </div>
-                </td>
-                <td className="text-right">
-                  <div className="flex justify-end space-x-2">
-                    <button 
-                      className="p-1.5 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200"
-                      title="Edit"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                      </svg>
+                  
+                  <div className="mt-4 md:mt-0 md:ml-6 flex items-center">
+                    {!item.redeemed && !isExpired && (
+                      <button 
+                        onClick={() => handleMarkRedeemed(item.id)}
+                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                      >
+                        Mark as Redeemed
+                      </button>
+                    )}
+                    
+                    <button className="ml-3 text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                      Edit
                     </button>
-                    <button 
-                      className="p-1.5 rounded-full bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-500"
-                      onClick={() => deleteRedemption(redemption.id)}
-                      title="Delete"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
+                    
+                    <button className="ml-3 text-red-600 hover:text-red-900 text-sm font-medium">
+                      Delete
                     </button>
                   </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="p-6 text-center text-gray-500">
+            You haven't added any redemption items yet. Use the form above to add your first item!
+          </div>
+        )}
       </div>
     </div>
   );
