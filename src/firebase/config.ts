@@ -13,6 +13,15 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '1:000000000000:web:0000000000000000000000',
 };
 
+console.log('Firebase config loaded with:', {
+  apiKey: firebaseConfig.apiKey ? 'API_KEY_SET' : 'API_KEY_MISSING',
+  authDomain: firebaseConfig.authDomain ? firebaseConfig.authDomain : 'AUTH_DOMAIN_MISSING',
+  projectId: firebaseConfig.projectId ? firebaseConfig.projectId : 'PROJECT_ID_MISSING',
+  storageBucket: firebaseConfig.storageBucket ? firebaseConfig.storageBucket : 'STORAGE_BUCKET_MISSING',
+  messagingSenderId: firebaseConfig.messagingSenderId ? 'MESSAGING_SENDER_ID_SET' : 'MESSAGING_SENDER_ID_MISSING',
+  appId: firebaseConfig.appId ? 'APP_ID_SET' : 'APP_ID_MISSING',
+});
+
 // Only initialize Firebase if we're in the browser and not during SSG/SSR
 const initializeFirebase = () => {
   // Check if we're in the browser
@@ -23,16 +32,23 @@ const initializeFirebase = () => {
       return { app: null, db: null, auth: null, storage: null };
     }
     
-    // Initialize Firebase only if not already initialized
-    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-    const db = getFirestore(app);
-    const auth = getAuth(app);
-    const storage = getStorage(app);
-    
-    return { app, db, auth, storage };
+    try {
+      // Initialize Firebase only if not already initialized
+      const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+      const storage = getStorage(app);
+      
+      console.log('Firebase initialized successfully!');
+      return { app, db, auth, storage };
+    } catch (error) {
+      console.error('Error initializing Firebase:', error);
+      return { app: null, db: null, auth: null, storage: null };
+    }
   }
   
   // Return null values for server-side
+  console.log('Firebase not initialized (server-side context)');
   return { app: null, db: null, auth: null, storage: null };
 };
 

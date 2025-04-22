@@ -2,15 +2,9 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow public read access but only authenticated write access
-    match /perks/{document=**} {
-      allow read: if true;
-      allow write: if true; // For development - change to authentication rules in production
+    // Allow all read and write operations during development
+    match /{document=**} {
+      allow read, write: if true;
     }
-    
-    // Example of authenticated access for future implementation
-    // match /users/{userId} {
-    //   allow read, write: if request.auth != null && request.auth.uid == userId;
-    // }
   }
 } 

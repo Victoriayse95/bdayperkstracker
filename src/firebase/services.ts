@@ -143,8 +143,15 @@ export const addPerk = async (perk: Omit<Perk, 'id'>): Promise<string> => {
   }
   
   try {
+    console.log('Getting perks collection reference');
     const perksCollection = getPerksCollection();
-    if (!perksCollection) throw new Error('Firestore not initialized');
+    
+    if (!perksCollection) {
+      console.error('Firestore not initialized, perksCollection is null');
+      throw new Error('Database connection error. Please try again later.');
+    }
+    
+    console.log('Adding document to Firestore with data:', { ...perk, createdAt: 'now', updatedAt: 'now' });
     
     const docRef = await addDoc(perksCollection, {
       ...perk,
@@ -152,10 +159,24 @@ export const addPerk = async (perk: Omit<Perk, 'id'>): Promise<string> => {
       updatedAt: Timestamp.now()
     });
     
+    console.log('Document added successfully with ID:', docRef.id);
     return docRef.id;
   } catch (error) {
-    console.error('Error in addPerk:', error);
-    throw error;
+    console.error('Detailed error in addPerk:', error);
+    if (error instanceof Error) {
+      // Provide more specific error messages based on error types
+      if (error.message.includes('permission-denied')) {
+        throw new Error('Permission denied. You do not have access to add perks.');
+      } else if (error.message.includes('unavailable')) {
+        throw new Error('Firestore service is currently unavailable. Please try again later.');
+      } else if (error.message.includes('unauthenticated')) {
+        throw new Error('Authentication required. Please sign in to add perks.');
+      } else {
+        throw new Error(`Failed to add perk: ${error.message}`);
+      }
+    } else {
+      throw new Error('Unknown error occurred while adding the perk');
+    }
   }
 };
 

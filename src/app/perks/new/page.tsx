@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { addPerk } from '../../../firebase/services';
+import FirebaseDebugger from '../../../components/FirebaseDebugger';
 
 export default function NewPerkPage() {
   const router = useRouter();
@@ -35,6 +36,8 @@ export default function NewPerkPage() {
     setError(null);
 
     try {
+      console.log('Submitting form data:', formData);
+      
       // Validate form
       const requiredFields = ['business', 'category', 'startDate', 'expiry'];
       for (const field of requiredFields) {
@@ -43,19 +46,23 @@ export default function NewPerkPage() {
         }
       }
 
+      console.log('Form validation passed, attempting to save to Firestore');
+      
       // Add to Firestore
-      await addPerk(formData);
+      const perkId = await addPerk(formData);
+      console.log('Perk added successfully with ID:', perkId);
       
       // Redirect to perks list
       router.push('/perks');
     } catch (err) {
+      console.error('Detailed error in form submission:', err);
       if (err instanceof Error) {
         setError(err.message);
       } else {
         setError('An unexpected error occurred');
       }
-      console.error('Error adding perk:', err);
     } finally {
+      // Always reset loading state
       setLoading(false);
     }
   };
@@ -81,6 +88,10 @@ export default function NewPerkPage() {
           <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
+
+      <div className="mb-6">
+        <FirebaseDebugger />
+      </div>
 
       <form onSubmit={handleSubmit} className="bg-white shadow overflow-hidden sm:rounded-lg p-6">
         <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
