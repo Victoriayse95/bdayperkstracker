@@ -39,7 +39,7 @@ export default function FavoritesPage() {
       <div className="overflow-hidden bg-white shadow sm:rounded-lg">
         {favorites.length === 0 ? (
           <div className="p-6 text-center">
-            <p className="text-gray-500">You haven't added any favorites yet.</p>
+            <p className="text-gray-500">You haven&apos;t added any favorites yet.</p>
           </div>
         ) : (
           <ul className="divide-y divide-gray-200">
