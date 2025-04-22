@@ -22,10 +22,10 @@ export default function Home() {
                 </ul>
               </div>
               <div className="pt-6 text-base leading-6 font-bold sm:text-lg sm:leading-7">
-                <p>Ready to get started?</p>
+                <p>Ready to explore?</p>
                 <p>
-                  <a href="/signup" className="text-cyan-600 hover:text-cyan-700">
-                    Create an account &rarr;
+                  <a href="/perks" className="text-cyan-600 hover:text-cyan-700">
+                    Browse available perks &rarr;
                   </a>
                 </p>
               </div>
