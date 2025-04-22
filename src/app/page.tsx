@@ -1,10 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import Calendar from '@/components/Calendar';
-import { StarIcon } from '@heroicons/react/24/solid';
 
 // Sample redemption data - in a real app, this would come from Firebase
 const currentDate = new Date();
@@ -58,11 +54,6 @@ const sampleRedemptions = [
     status: "Redeemed"
   }
 ];
-
-// Filter redemptions for current month
-const currentMonthRedemptions = sampleRedemptions.filter(
-  redemption => redemption.redemptionMonth === currentMonth
-);
 
 export default function Home() {
   return (
