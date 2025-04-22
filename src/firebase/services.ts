@@ -20,7 +20,7 @@ import { db } from './config';
 export interface Perk {
   id?: string;
   business: string;
-  contact: string;
+  contact?: string;
   category: string;
   startDate: string;
   expiry: string;
@@ -37,7 +37,6 @@ export const samplePerks: Perk[] = [
   {
     id: '1',
     business: "Starbucks",
-    contact: "555-123-4567",
     category: "Coffee & Drinks",
     startDate: "04/19/2023",
     expiry: "04/26/2023",
@@ -49,7 +48,6 @@ export const samplePerks: Perk[] = [
   {
     id: '2',
     business: "Sephora",
-    contact: "555-567-8901",
     category: "Beauty",
     startDate: "04/23/2023",
     expiry: "04/30/2023",
@@ -61,7 +59,6 @@ export const samplePerks: Perk[] = [
   {
     id: '3',
     business: "Baskin-Robbins",
-    contact: "555-345-6789",
     category: "Food & Dessert",
     startDate: "04/13/2023",
     expiry: "04/20/2023",
@@ -123,23 +120,22 @@ export const getAllPerks = async (): Promise<Perk[]> => {
     console.log('Querying Firestore for perks...');
     const perksQuery = query(perksCollection, orderBy('business'));
     
-    // Use timeout with fallback to sample data
-    const snapshot = await withTimeout(
-      getDocs(perksQuery), 
-      8000, 
-      { docs: [] }
-    );
-    
-    if (snapshot.docs.length === 0) {
-      console.log('No perks found in Firestore, using sample data');
+    try {
+      // Use timeout but handle fallback properly
+      const snapshot = await withTimeout(
+        getDocs(perksQuery), 
+        8000
+      );
+      
+      console.log(`Found ${snapshot.docs.length} perks in Firestore`);
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Perk[];
+    } catch (error) {
+      console.log('Error or timeout fetching perks, using sample data');
       return [...samplePerks];
     }
-    
-    console.log(`Found ${snapshot.docs.length} perks in Firestore`);
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as Perk[];
   } catch (error) {
     console.error('Error in getAllPerks:', error);
     return [...samplePerks];
@@ -158,19 +154,23 @@ export const getPerkById = async (id: string): Promise<Perk | null> => {
     if (!db) return null;
     const docRef = doc(db as Firestore, 'perks', id);
     
-    // Use timeout with fallback to sample data
-    const docSnap = await withTimeout(
-      getDoc(docRef), 
-      8000, 
-      null
-    );
-    
-    if (!docSnap || !docSnap.exists()) {
-      const samplePerk = samplePerks.find(perk => perk.id === id);
-      return samplePerk || null;
+    try {
+      // Use timeout with proper error handling
+      const docSnap = await withTimeout(
+        getDoc(docRef), 
+        8000
+      );
+      
+      if (!docSnap.exists()) {
+        const samplePerk = samplePerks.find(perk => perk.id === id);
+        return samplePerk || null;
+      }
+      
+      return { id: docSnap.id, ...docSnap.data() } as Perk;
+    } catch (error) {
+      console.log('Error or timeout fetching perk by ID, checking sample data');
+      return samplePerks.find(perk => perk.id === id) || null;
     }
-    
-    return { id: docSnap.id, ...docSnap.data() } as Perk;
   } catch (error) {
     console.error('Error in getPerkById:', error);
     return samplePerks.find(perk => perk.id === id) || null;
@@ -329,21 +329,21 @@ export const getPerksByCategory = async (category: string): Promise<Perk[]> => {
       orderBy('business')
     );
     
-    // Use timeout with fallback
-    const snapshot = await withTimeout(
-      getDocs(q),
-      8000,
-      { docs: [] }
-    );
-    
-    if (snapshot.docs.length === 0) {
+    try {
+      // Use timeout but handle fallback properly
+      const snapshot = await withTimeout(
+        getDocs(q),
+        8000
+      );
+      
+      return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Perk[];
+    } catch (error) {
+      console.log('Error or timeout fetching perks by category, using filtered sample data');
       return samplePerks.filter(perk => perk.category === category);
     }
-    
-    return snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })) as Perk[];
   } catch (error) {
     console.error('Error in getPerksByCategory:', error);
     return samplePerks.filter(perk => perk.category === category);

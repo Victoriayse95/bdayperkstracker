@@ -10,7 +10,6 @@ export default function NewPerkPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
     business: '',
-    contact: '',
     category: '',
     startDate: '',
     expiry: '',
@@ -189,22 +188,6 @@ export default function NewPerkPage() {
                 onChange={handleChange}
                 className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
                 required
-              />
-            </div>
-          </div>
-
-          <div className="sm:col-span-3">
-            <label htmlFor="contact" className="block text-sm font-medium text-gray-700">
-              Contact Information
-            </label>
-            <div className="mt-1">
-              <input
-                type="text"
-                name="contact"
-                id="contact"
-                value={formData.contact}
-                onChange={handleChange}
-                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
               />
             </div>
           </div>
