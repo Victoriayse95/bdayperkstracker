@@ -21,9 +21,11 @@ export interface Perk {
   business: string;
   contact: string;
   category: string;
+  startDate: string;
   expiry: string;
-  value: string;
-  status: string;
+  redemptionPhone: string;
+  redemptionEmail: string;
+  status: 'To Redeem' | 'Redeemed' | 'Expired';
   notes: string;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
@@ -36,9 +38,11 @@ export const samplePerks: Perk[] = [
     business: "Starbucks",
     contact: "555-123-4567",
     category: "Coffee & Drinks",
+    startDate: "04/19/2023",
     expiry: "04/26/2023",
-    value: "$5",
-    status: "Reminder Sent",
+    redemptionPhone: "800-782-7282",
+    redemptionEmail: "support@starbucks.com",
+    status: "To Redeem",
     notes: "Free drink on birthday - mobile app required"
   },
   {
@@ -46,9 +50,11 @@ export const samplePerks: Perk[] = [
     business: "Sephora",
     contact: "555-567-8901",
     category: "Beauty",
+    startDate: "04/23/2023",
     expiry: "04/30/2023",
-    value: "$10",
-    status: "Service In Progress",
+    redemptionPhone: "877-737-4672",
+    redemptionEmail: "customerservice@sephora.com",
+    status: "To Redeem",
     notes: "Free beauty gift - Beauty Insider membership required"
   },
   {
@@ -56,9 +62,11 @@ export const samplePerks: Perk[] = [
     business: "Baskin-Robbins",
     contact: "555-345-6789",
     category: "Food & Dessert",
+    startDate: "04/13/2023",
     expiry: "04/20/2023",
-    value: "$3",
-    status: "Cancelled",
+    redemptionPhone: "800-859-5339",
+    redemptionEmail: "support@baskinrobbins.com",
+    status: "Expired",
     notes: "Free ice cream scoop - birthday club membership needed"
   }
 ];

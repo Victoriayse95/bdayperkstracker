@@ -8,13 +8,9 @@ export default function Navbar() {
   
   const navItems = [
     { name: 'Home', href: '/' },
-    { name: 'Browse Perks', href: '/perks' },
-    { name: 'Personal Tracker', href: '/tracker' },
-    { name: 'Reminders', href: '/reminders' },
-    { name: 'Redemption Tracking', href: '/redemptions' },
-    { name: 'Discovery', href: '/discovery' },
-    { name: 'My Favorites', href: '/favorites' },
-    { name: 'About', href: '/about' },
+    { name: 'All Perks', href: '/perks' },
+    { name: 'Add New Perk', href: '/perks/new' },
+    { name: 'Notifications', href: '/notifications' },
   ];
 
   return (

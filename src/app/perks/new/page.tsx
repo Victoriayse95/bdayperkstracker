@@ -11,9 +11,11 @@ export default function NewPerkPage() {
     business: '',
     contact: '',
     category: '',
+    startDate: '',
     expiry: '',
-    value: '',
-    status: 'Not Started',
+    redemptionPhone: '',
+    redemptionEmail: '',
+    status: 'To Redeem' as 'To Redeem' | 'Redeemed' | 'Expired',
     notes: ''
   });
   const [loading, setLoading] = useState(false);
@@ -34,7 +36,7 @@ export default function NewPerkPage() {
 
     try {
       // Validate form
-      const requiredFields = ['business', 'category', 'value'];
+      const requiredFields = ['business', 'category', 'startDate', 'expiry'];
       for (const field of requiredFields) {
         if (!formData[field as keyof typeof formData]) {
           throw new Error(`${field.charAt(0).toUpperCase() + field.slice(1)} is required`);
@@ -141,8 +143,25 @@ export default function NewPerkPage() {
           </div>
 
           <div className="sm:col-span-3">
+            <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
+              Start Date*
+            </label>
+            <div className="mt-1">
+              <input
+                type="date"
+                name="startDate"
+                id="startDate"
+                value={formData.startDate}
+                onChange={handleChange}
+                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="sm:col-span-3">
             <label htmlFor="expiry" className="block text-sm font-medium text-gray-700">
-              Expiry Date
+              Expiry Date*
             </label>
             <div className="mt-1">
               <input
@@ -152,24 +171,41 @@ export default function NewPerkPage() {
                 value={formData.expiry}
                 onChange={handleChange}
                 className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                required
               />
             </div>
           </div>
 
           <div className="sm:col-span-3">
-            <label htmlFor="value" className="block text-sm font-medium text-gray-700">
-              Value*
+            <label htmlFor="redemptionPhone" className="block text-sm font-medium text-gray-700">
+              Redemption Phone Number
             </label>
             <div className="mt-1">
               <input
-                type="text"
-                name="value"
-                id="value"
-                value={formData.value}
+                type="tel"
+                name="redemptionPhone"
+                id="redemptionPhone"
+                value={formData.redemptionPhone}
                 onChange={handleChange}
-                placeholder="$10"
+                placeholder="800-123-4567"
                 className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                required
+              />
+            </div>
+          </div>
+
+          <div className="sm:col-span-3">
+            <label htmlFor="redemptionEmail" className="block text-sm font-medium text-gray-700">
+              Redemption Email
+            </label>
+            <div className="mt-1">
+              <input
+                type="email"
+                name="redemptionEmail"
+                id="redemptionEmail"
+                value={formData.redemptionEmail}
+                onChange={handleChange}
+                placeholder="support@example.com"
+                className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
               />
             </div>
           </div>
@@ -186,12 +222,9 @@ export default function NewPerkPage() {
                 onChange={handleChange}
                 className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
               >
-                <option value="Not Started">Not Started</option>
-                <option value="Reminder Sent">Reminder Sent</option>
-                <option value="Service In Progress">In Progress</option>
+                <option value="To Redeem">To Redeem</option>
                 <option value="Redeemed">Redeemed</option>
                 <option value="Expired">Expired</option>
-                <option value="Cancelled">Cancelled</option>
               </select>
             </div>
           </div>
