@@ -1,149 +1,87 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { app, db, auth } from '../firebase/config';
-import { collection, getDocs, addDoc, serverTimestamp, Firestore } from 'firebase/firestore';
+import { getDocs, collection } from 'firebase/firestore';
+import { db } from '../firebase/config';
 
 export default function FirebaseDebugger() {
-  const [status, setStatus] = useState<'loading' | 'connected' | 'error'>('loading');
-  const [message, setMessage] = useState('Checking Firebase connection...');
-  const [testData, setTestData] = useState<any[]>([]);
-  const [testResult, setTestResult] = useState<string | null>(null);
-  const [isWriteLoading, setIsWriteLoading] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>('checking');
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function checkFirebaseConnection() {
+    const checkFirebaseConnection = async () => {
       try {
-        if (!app || !db) {
-          setStatus('error');
-          setMessage('Firebase is not initialized. Check your environment variables in Vercel.');
-          return;
+        setLoading(true);
+        // Try to fetch a test document
+        if (!db) {
+          throw new Error('Firebase not initialized');
         }
-
-        // Check connection by attempting to read from a test collection
-        try {
-          const testCollection = collection(db as Firestore, '_test_connection');
-          
-          // Set a timeout for the connection test
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Connection timeout - Firestore is not responding')), 10000)
-          );
-          
-          await Promise.race([getDocs(testCollection), timeoutPromise]);
-          
-          setStatus('connected');
-          setMessage('Successfully connected to Firebase!');
-        } catch (error) {
-          console.error('Error checking Firebase connection:', error);
-          setStatus('error');
-          let errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          
-          if (errorMessage.includes('timeout')) {
-            errorMessage = 'Connection timeout. Firestore is not responding or might be blocked.';
-          } else if (errorMessage.includes('permission-denied')) {
-            errorMessage = 'Permission denied. Check your Firestore security rules.';
-          } else if (errorMessage.includes('not-found')) {
-            errorMessage = 'Project or database not found. Check your Firebase project configuration.';
-          }
-          
-          setMessage(`Error connecting to Firebase: ${errorMessage}`);
-        }
+        
+        // Try to list documents from the perks collection
+        await getDocs(collection(db, 'perks'));
+        
+        setConnectionStatus('connected');
+        setErrorDetails(null);
       } catch (error) {
-        console.error('Error in Firebase connection check:', error);
-        setStatus('error');
-        setMessage(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setConnectionStatus('error');
+        if (error instanceof Error) {
+          setErrorDetails(error.message);
+        } else {
+          setErrorDetails('Unknown error occurred');
+        }
+      } finally {
+        setLoading(false);
       }
-    }
+    };
 
     checkFirebaseConnection();
   }, []);
 
-  const handleTestWrite = async () => {
-    if (!db) {
-      setTestResult('Firebase DB is not initialized');
-      return;
-    }
-
-    try {
-      setIsWriteLoading(true);
-      setTestResult('Attempting to write test data...');
-      
-      // Set a timeout for the write operation
-      const timeoutPromise = new Promise<never>((_, reject) => 
-        setTimeout(() => reject(new Error('Write operation timeout after 10 seconds')), 10000)
-      );
-      
-      const writePromise = async () => {
-        // Cast db as Firestore to fix type error
-        const firestore = db as Firestore;
-        const testCollection = collection(firestore, '_test_data');
-        const docRef = await addDoc(testCollection, {
-          message: 'Test data',
-          timestamp: serverTimestamp(),
-          createdAt: new Date().toISOString()
-        });
-        return docRef;
-      };
-      
-      const docRef = await Promise.race([writePromise(), timeoutPromise]);
-      setTestResult(`Successfully wrote test data with ID: ${docRef.id}`);
-    } catch (error) {
-      console.error('Error writing test data:', error);
-      let errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
-      if (errorMessage.includes('timeout')) {
-        errorMessage = 'Write operation timed out. Firestore is not responding or might be blocked.';
-      } else if (errorMessage.includes('permission-denied')) {
-        errorMessage = 'Permission denied. Check your Firestore security rules.';
-      } else if (errorMessage.includes('quota-exceeded')) {
-        errorMessage = 'Firebase quota exceeded. Check your billing plan.';
-      }
-      
-      setTestResult(`Error writing test data: ${errorMessage}`);
-    } finally {
-      setIsWriteLoading(false);
-    }
-  };
-
   return (
-    <div className="p-4 border rounded-lg bg-white shadow-sm">
-      <h2 className="text-lg font-semibold mb-2">Firebase Connection Status</h2>
+    <div className="bg-gray-50 rounded-md p-4 border border-gray-200">
+      <h3 className="text-lg font-medium text-gray-900 mb-2">Firebase Connection Debugger</h3>
       
-      <div className={`p-3 rounded-md mb-3 ${
-        status === 'connected' ? 'bg-green-100 text-green-800' : 
-        status === 'error' ? 'bg-red-100 text-red-800' : 
-        'bg-blue-100 text-blue-800'
-      }`}>
-        <p>{message}</p>
-        {status === 'error' && (
-          <div className="text-sm mt-1">
-            <p>Check your Firebase configuration and make sure the project is properly set up.</p>
-            <p className="mt-1">Common issues:</p>
-            <ul className="list-disc ml-5 mt-1">
-              <li>Environment variables not correctly set in Vercel</li>
-              <li>Firestore rules blocking access</li>
-              <li>Firestore not enabled for your project</li>
-              <li>Project ID mismatch between config and actual project</li>
-            </ul>
+      <div className="flex items-center mb-2">
+        <span className="mr-2 font-medium">Status:</span>
+        {loading ? (
+          <div className="flex items-center">
+            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-indigo-500 mr-2"></div>
+            <span>Checking connection...</span>
           </div>
+        ) : connectionStatus === 'connected' ? (
+          <span className="text-green-700 flex items-center">
+            <svg className="h-5 w-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+            </svg>
+            Connected
+          </span>
+        ) : (
+          <span className="text-red-700 flex items-center">
+            <svg className="h-5 w-5 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"></path>
+            </svg>
+            Error
+          </span>
         )}
       </div>
       
+      {errorDetails && (
+        <div className="bg-red-50 p-3 rounded-md mt-2">
+          <p className="text-sm text-red-700">Error details: {errorDetails}</p>
+        </div>
+      )}
+      
       <div className="mt-4">
-        <h3 className="text-md font-medium mb-2">Test Firebase Write Operations</h3>
-        <button 
-          onClick={handleTestWrite}
-          disabled={isWriteLoading}
-          className={`px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 ${isWriteLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
-        >
-          {isWriteLoading ? 'Testing...' : 'Test Write to Firestore'}
-        </button>
-        
-        {testResult && (
-          <div className={`mt-2 p-2 rounded-md ${testResult.includes('Successfully') ? 'bg-green-100' : 'bg-red-100'}`}>
-            {testResult}
-          </div>
-        )}
+        <p className="text-sm text-gray-600">
+          <strong>Tips:</strong>
+        </p>
+        <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
+          <li>Check that your Firebase configuration is correct in your environment variables</li>
+          <li>Make sure your Firestore security rules allow the operations you're trying to perform</li>
+          <li>Check your internet connection</li>
+          <li>Firebase might be temporarily unavailable or experiencing issues</li>
+        </ul>
       </div>
     </div>
   );
