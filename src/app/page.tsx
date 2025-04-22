@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Home() {
   return (
     <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
@@ -24,9 +26,9 @@ export default function Home() {
               <div className="pt-6 text-base leading-6 font-bold sm:text-lg sm:leading-7">
                 <p>Ready to explore?</p>
                 <p>
-                  <a href="/perks" className="text-cyan-600 hover:text-cyan-700">
+                  <Link href="/perks" className="text-cyan-600 hover:text-cyan-700">
                     Browse available perks &rarr;
-                  </a>
+                  </Link>
                 </p>
               </div>
             </div>

@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function PerksPage() {
   // Sample perks data - in a real app, this would come from a database or API
   const perks = [
@@ -73,12 +75,12 @@ export default function PerksPage() {
         </div>
 
         <div className="mt-6 text-center">
-          <a 
+          <Link 
             href="/" 
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-cyan-600 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500"
           >
             Back to Home
-          </a>
+          </Link>
         </div>
       </div>
     </div>
