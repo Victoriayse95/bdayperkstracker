@@ -10,6 +10,7 @@ export default function Navbar() {
     { name: 'Home', href: '/' },
     { name: 'All Perks', href: '/perks' },
     { name: 'Add New Perk', href: '/perks/new' },
+    { name: 'My Favorites', href: '/favorites' },
     { name: 'Tasks', href: '/tasks' },
   ];
 
