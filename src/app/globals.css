@@ -1,8 +1,19 @@
 @import "tailwindcss";
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary-color: #8B5CF6;
+  --secondary-color: #F5A3FF;
+  --background-color: #EEF2F7;
+  --card-bg-light: #F0F9FF;
+  --card-bg-pink: #FFE6F2;
+  --accent-color: #A3BFFA;
+  --text-dark: #333333;
+  --text-light: #6B7280;
 }
 
 @theme inline {
@@ -23,4 +34,228 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-dark);
+  font-family: 'Inter', sans-serif;
+}
+
+.app-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Card styles */
+.card {
+  background-color: white;
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: transform 0.2s ease;
+}
+
+.card-light {
+  background-color: var(--card-bg-light);
+}
+
+.card-pink {
+  background-color: var(--card-bg-pink);
+}
+
+.card:hover {
+  transform: translateY(-3px);
+}
+
+/* Button styles */
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: #7c4cf9;
+  box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);
+}
+
+/* Table styles */
+.table-container {
+  overflow: hidden;
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.pastel-table {
+  width: 100%;
+  background-color: white;
+  border-radius: 1.25rem;
+  overflow: hidden;
+}
+
+.pastel-table th {
+  background-color: #F9FAFB;
+  color: var(--text-light);
+  padding: 1rem;
+  text-align: left;
+  font-weight: 500;
+  font-size: 0.75rem;
+}
+
+.pastel-table td {
+  padding: 1rem;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.pastel-table tr:hover {
+  background-color: #F9FAFB;
+}
+
+/* Status styles */
+.status-badge {
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-to-redeem {
+  background-color: #DBEAFE;
+  color: #1E40AF;
+}
+
+.status-redeemed {
+  background-color: #D1FAE5;
+  color: #065F46;
+}
+
+.status-expiring {
+  background-color: #FEF3C7;
+  color: #92400E;
+}
+
+.status-expired {
+  background-color: #F3F4F6;
+  color: #4B5563;
+}
+
+/* Calendar styles */
+.calendar-container {
+  background-color: white;
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 1.5rem;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+}
+
+.calendar-day-label {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-light);
+  margin-bottom: 0.5rem;
+}
+
+.calendar-day {
+  aspect-ratio: 1/1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.calendar-day:hover {
+  background-color: #F3F4F6;
+}
+
+.calendar-day-selected {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.calendar-day-today {
+  border: 2px solid var(--primary-color);
+}
+
+.calendar-day-active {
+  background-color: #E0E7FF;
+  color: var(--primary-color);
+}
+
+/* Activity cards */
+.activity-card {
+  padding: 1.25rem;
+  border-radius: 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.activity-card-light {
+  background-color: var(--card-bg-light);
+}
+
+.activity-card-pink {
+  background-color: var(--card-bg-pink);
+}
+
+/* Avatar group */
+.avatar-group {
+  display: flex;
+}
+
+.avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid white;
+  margin-left: -8px;
+  object-fit: cover;
+}
+
+.avatar:first-child {
+  margin-left: 0;
+}
+
+/* Rating badge */
+.rating-badge {
+  padding: 0.25rem 0.5rem;
+  background-color: white;
+  border-radius: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+/* Navigation styles */
+.nav-item {
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-light);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.nav-item:hover, .nav-item-active {
+  background-color: var(--primary-color);
+  color: white;
 }

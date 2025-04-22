@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/solid';
 
 // Sample redemption data - in a real app, this would come from Firebase
 const currentDate = new Date();
@@ -152,15 +153,15 @@ export default function AllRedemptionsPage() {
   const getStatusClass = (status: string) => {
     switch(status) {
       case 'To Redeem':
-        return 'bg-blue-100 text-blue-800';
+        return 'status-to-redeem';
       case 'Redeemed':
-        return 'bg-green-100 text-green-800';
+        return 'status-redeemed';
       case 'Expired':
-        return 'bg-gray-100 text-gray-800';
+        return 'status-expired';
       case 'Expiring Soon':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'status-expiring';
       default:
-        return 'bg-blue-100 text-blue-800';
+        return 'status-to-redeem';
     }
   };
 
@@ -168,15 +169,13 @@ export default function AllRedemptionsPage() {
   const getSortIndicator = (column: string) => {
     if (sortColumn !== column) return null;
     
-    return (
-      <span className="ml-1">
-        {sortDirection === 'asc' ? '↑' : '↓'}
-      </span>
-    );
+    return sortDirection === 'asc' 
+      ? <ChevronUpIcon className="inline h-4 w-4 ml-1" />
+      : <ChevronDownIcon className="inline h-4 w-4 ml-1" />;
   };
 
   return (
-    <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="app-container pb-10">
       <div className="my-6">
         <h1 className="text-3xl font-bold text-gray-900">All Redemptions</h1>
         <p className="mt-2 text-gray-600">
@@ -185,149 +184,154 @@ export default function AllRedemptionsPage() {
       </div>
 
       <div className="flex justify-between items-center mb-6">
-        <div className="w-80">
+        <div className="w-80 relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
           <input
             type="text"
             placeholder="Search redemptions..."
             value={searchTerm}
             onChange={handleSearch}
-            className="px-3 py-2 border border-gray-300 rounded-md w-full"
+            className="pl-10 pr-4 py-2 border border-gray-200 rounded-full bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:border-transparent w-full"
           />
         </div>
         <Link
           href="/redemptions/new"
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+          className="btn-primary flex items-center"
         >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
           Add New Redemption
         </Link>
       </div>
 
-      <div className="overflow-x-auto">
-        <div className="overflow-hidden bg-white shadow border border-gray-200 sm:rounded-lg">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort('name')}
-                >
-                  Name {getSortIndicator('name')}
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort('perks')}
-                >
-                  Perks {getSortIndicator('perks')}
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort('redemptionDateFrom')}
-                >
-                  Valid From {getSortIndicator('redemptionDateFrom')}
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort('redemptionDateTo')}
-                >
-                  Valid To {getSortIndicator('redemptionDateTo')}
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort('contactNumber')}
-                >
-                  Contact {getSortIndicator('contactNumber')}
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort('status')}
-                >
-                  Status {getSortIndicator('status')}
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Notes
-                </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {sortedRedemptions.map((redemption) => (
-                <tr key={redemption.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div contentEditable className="outline-none focus:ring-2 focus:ring-indigo-500 focus:rounded px-2 py-1 text-sm font-medium text-gray-900">
-                      {redemption.name}
+      <div className="table-container">
+        <table className="pastel-table">
+          <thead>
+            <tr>
+              <th
+                onClick={() => handleSort('name')}
+                className="cursor-pointer"
+              >
+                Name {getSortIndicator('name')}
+              </th>
+              <th
+                onClick={() => handleSort('perks')}
+                className="cursor-pointer"
+              >
+                Perks {getSortIndicator('perks')}
+              </th>
+              <th
+                onClick={() => handleSort('redemptionDateFrom')}
+                className="cursor-pointer"
+              >
+                Valid From {getSortIndicator('redemptionDateFrom')}
+              </th>
+              <th
+                onClick={() => handleSort('redemptionDateTo')}
+                className="cursor-pointer"
+              >
+                Valid To {getSortIndicator('redemptionDateTo')}
+              </th>
+              <th
+                onClick={() => handleSort('contactNumber')}
+                className="cursor-pointer"
+              >
+                Contact {getSortIndicator('contactNumber')}
+              </th>
+              <th
+                onClick={() => handleSort('status')}
+                className="cursor-pointer"
+              >
+                Status {getSortIndicator('status')}
+              </th>
+              <th>
+                Notes
+              </th>
+              <th className="text-right">
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedRedemptions.map((redemption) => (
+              <tr key={redemption.id}>
+                <td>
+                  <div contentEditable className="outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:rounded p-1 font-medium text-gray-900">
+                    {redemption.name}
+                  </div>
+                </td>
+                <td>
+                  <div contentEditable className="outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:rounded p-1 text-gray-500">
+                    {redemption.perks}
+                  </div>
+                </td>
+                <td>
+                  <div contentEditable className="outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:rounded p-1 text-gray-500">
+                    {redemption.redemptionDateFrom}
+                  </div>
+                </td>
+                <td>
+                  <div contentEditable className="outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:rounded p-1 text-gray-500">
+                    {redemption.redemptionDateTo}
+                  </div>
+                </td>
+                <td>
+                  <div className="text-gray-500">
+                    <div contentEditable className="outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:rounded p-1">
+                      {redemption.contactNumber}
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div contentEditable className="outline-none focus:ring-2 focus:ring-indigo-500 focus:rounded px-2 py-1 text-sm text-gray-500">
-                      {redemption.perks}
+                    <div contentEditable className="outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:rounded p-1 text-xs text-gray-400">
+                      {redemption.emailAddress}
                     </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div contentEditable className="outline-none focus:ring-2 focus:ring-indigo-500 focus:rounded px-2 py-1 text-sm text-gray-500">
-                      {redemption.redemptionDateFrom}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div contentEditable className="outline-none focus:ring-2 focus:ring-indigo-500 focus:rounded px-2 py-1 text-sm text-gray-500">
-                      {redemption.redemptionDateTo}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-500">
-                      <div contentEditable className="outline-none focus:ring-2 focus:ring-indigo-500 focus:rounded px-2 py-1">
-                        {redemption.contactNumber}
-                      </div>
-                      <div contentEditable className="outline-none focus:ring-2 focus:ring-indigo-500 focus:rounded px-2 py-1 text-xs text-gray-400">
-                        {redemption.emailAddress}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <select 
-                      className={`px-2 py-1 text-xs leading-5 font-semibold rounded-full ${getStatusClass(redemption.status)} border-0 outline-none cursor-pointer`}
-                      value={redemption.status}
-                      onChange={(e) => updateStatus(redemption.id, e.target.value)}
-                    >
-                      <option value="To Redeem">To Redeem</option>
-                      <option value="Redeemed">Redeemed</option>
-                      <option value="Expiring Soon">Expiring Soon</option>
-                      <option value="Expired">Expired</option>
-                    </select>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div contentEditable className="outline-none focus:ring-2 focus:ring-indigo-500 focus:rounded px-2 py-1 text-sm text-gray-500">
-                      {redemption.notes}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  </div>
+                </td>
+                <td>
+                  <select 
+                    className={`status-badge ${getStatusClass(redemption.status)} border-0 outline-none cursor-pointer`}
+                    value={redemption.status}
+                    onChange={(e) => updateStatus(redemption.id, e.target.value)}
+                  >
+                    <option value="To Redeem">To Redeem</option>
+                    <option value="Redeemed">Redeemed</option>
+                    <option value="Expiring Soon">Expiring Soon</option>
+                    <option value="Expired">Expired</option>
+                  </select>
+                </td>
+                <td>
+                  <div contentEditable className="outline-none focus:ring-2 focus:ring-[#8B5CF6] focus:rounded p-1 text-gray-500">
+                    {redemption.notes}
+                  </div>
+                </td>
+                <td className="text-right">
+                  <div className="flex justify-end space-x-2">
                     <button 
-                      className="text-red-600 hover:text-red-900"
-                      onClick={() => deleteRedemption(redemption.id)}
+                      className="p-1.5 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200"
+                      title="Edit"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                       </svg>
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    <button 
+                      className="p-1.5 rounded-full bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-500"
+                      onClick={() => deleteRedemption(redemption.id)}
+                      title="Delete"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
