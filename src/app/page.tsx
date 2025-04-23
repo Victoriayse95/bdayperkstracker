@@ -11,7 +11,7 @@ export default function Home() {
   const [usingSample, setUsingSample] = useState(false);
   const [currentDate] = useState(new Date());
 
-  // Filter for current month perks that aren't expired
+  // Filter for current month perks that aren't expired and aren't redeemed
   const currentMonthPerks = perks.filter(perk => {
     const expiryDate = new Date(perk.expiry);
     const today = new Date();
@@ -20,11 +20,14 @@ export default function Home() {
     // Check if not expired (including today as not expired)
     const notExpired = expiryDate.getTime() >= today.getTime();
     
+    // Check if not redeemed
+    const notRedeemed = perk.status !== 'Redeemed';
+    
     // Check if in current month
     const inCurrentMonth = expiryDate.getMonth() === currentDate.getMonth() && 
                           expiryDate.getFullYear() === currentDate.getFullYear();
                           
-    return inCurrentMonth && notExpired;
+    return inCurrentMonth && notExpired && notRedeemed;
   });
 
   const fetchPerks = async () => {
@@ -154,9 +157,9 @@ export default function Home() {
   return (
     <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="my-6">
-        <h1 className="text-3xl font-bold text-gray-900">{getCurrentMonthName()} Perks</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{getCurrentMonthName()} Perks To Redeem</h1>
         <p className="mt-2 text-gray-600">
-          Birthday perks expiring this month
+          Pending birthday perks that are still active and not yet redeemed
         </p>
       </div>
 
@@ -180,7 +183,7 @@ export default function Home() {
 
       {currentMonthPerks.length === 0 && !loading ? (
         <div className="bg-blue-50 p-4 rounded-md my-4">
-          <p className="text-blue-700">No active perks expiring this month. Check back later or add new perks!</p>
+          <p className="text-blue-700">No active perks to redeem this month. Redeemed perks and expired perks are hidden from this view.</p>
           <Link
             href="/perks/new"
             className="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
