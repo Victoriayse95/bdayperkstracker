@@ -17,7 +17,7 @@ export default function Home() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    // Check if not expired
+    // Check if not expired (including today as not expired)
     const notExpired = expiryDate.getTime() >= today.getTime();
     
     // Check if in current month
@@ -74,6 +74,11 @@ export default function Home() {
     const expiryDate = new Date(expiryDateStr);
     expiryDate.setHours(0, 0, 0, 0);
     
+    // For same-day expiry, return 0 (expires today, not expired yet)
+    if (expiryDate.getTime() === today.getTime()) {
+      return 0;
+    }
+    
     const diffTime = expiryDate.getTime() - today.getTime();
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
@@ -99,8 +104,15 @@ export default function Home() {
   // Get expiry status text
   const getExpiryStatusText = (expiryDateStr: string): string => {
     const daysRemaining = getDaysRemaining(expiryDateStr);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const expiryDate = new Date(expiryDateStr);
+    expiryDate.setHours(0, 0, 0, 0);
     
-    if (daysRemaining <= 0) {
+    // Check if today is the expiry date
+    if (expiryDate.getTime() === today.getTime()) {
+      return 'Expires today!';
+    } else if (daysRemaining < 0) {
       return 'Expired';
     } else if (daysRemaining === 1) {
       return 'Expires tomorrow!';

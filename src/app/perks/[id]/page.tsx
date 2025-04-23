@@ -49,6 +49,11 @@ export default function PerkDetailsPage({ params }: { params: { id: string } }) 
     const expiryDate = new Date(expiryDateStr);
     expiryDate.setHours(0, 0, 0, 0);
     
+    // For same-day expiry, return 0 (expires today, not expired yet)
+    if (expiryDate.getTime() === today.getTime()) {
+      return 0;
+    }
+    
     const diffTime = expiryDate.getTime() - today.getTime();
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
@@ -153,8 +158,26 @@ export default function PerkDetailsPage({ params }: { params: { id: string } }) 
     if (!perk || !perk.expiry) return null;
     
     const daysRemaining = getDaysRemaining(perk.expiry);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const expiryDate = new Date(perk.expiry);
+    expiryDate.setHours(0, 0, 0, 0);
     
-    if (daysRemaining <= 0) {
+    if (expiryDate.getTime() === today.getTime()) {
+      // Expires today
+      return {
+        message: `This perk expires today (${formatDate(perk.expiry)}).`,
+        className: 'bg-yellow-50 border-l-4 border-yellow-400',
+        iconClassName: 'text-yellow-400',
+        textClassName: 'text-yellow-700',
+        icon: (
+          <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+        )
+      };
+    } else if (daysRemaining < 0) {
+      // Already expired
       return {
         message: `This perk expired on ${formatDate(perk.expiry)}.`,
         className: 'bg-red-50 border-l-4 border-red-400',
@@ -168,8 +191,16 @@ export default function PerkDetailsPage({ params }: { params: { id: string } }) 
       };
     } else if (daysRemaining <= 7) {
       const urgencyLevel = daysRemaining <= 2 ? 'red' : 'yellow';
+      let message = '';
+      
+      if (daysRemaining === 1) {
+        message = `Expiring tomorrow (${formatDate(perk.expiry)}).`;
+      } else {
+        message = `Expiring in ${daysRemaining} days on ${formatDate(perk.expiry)}.`;
+      }
+      
       return {
-        message: `Expiring in ${daysRemaining} day${daysRemaining === 1 ? '' : 's'} on ${formatDate(perk.expiry)}.`,
+        message,
         className: urgencyLevel === 'red' ? 'bg-red-50 border-l-4 border-red-400' : 'bg-yellow-50 border-l-4 border-yellow-400',
         iconClassName: urgencyLevel === 'red' ? 'text-red-400' : 'text-yellow-400',
         textClassName: urgencyLevel === 'red' ? 'text-red-700' : 'text-yellow-700',
