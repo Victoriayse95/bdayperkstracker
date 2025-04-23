@@ -173,34 +173,29 @@ export default function Home() {
   // Renew perk for next year
   const handleRenewPerk = async (perk: Perk) => {
     try {
-      // Calculate next year's dates
-      const currentStartDate = new Date(perk.startDate);
-      const nextStartDate = new Date();
-      nextStartDate.setMonth(currentStartDate.getMonth());
-      nextStartDate.setDate(currentStartDate.getDate());
-      
-      // Format dates in MM/DD/YYYY format
-      const formattedStartDate = nextStartDate.toLocaleDateString('en-US', {
+      // Add one year to both the start date and expiry date
+      const startDate = new Date(perk.startDate);
+      startDate.setFullYear(startDate.getFullYear() + 1);
+      const newStartDate = startDate.toLocaleDateString('en-US', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit'
       });
       
-      // Calculate a new expiry date exactly one year from the current expiry
       const expiryDate = new Date(perk.expiry);
       expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-      const formattedExpiryDate = expiryDate.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: '2-digit', 
-        day: '2-digit' 
+      const newExpiryDate = expiryDate.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
       });
       
       // Reset status to 'To Redeem' and update dates
       await updatePerk(perk.id!, {
-        startDate: formattedStartDate,
-        expiry: formattedExpiryDate,
+        startDate: newStartDate,
+        expiry: newExpiryDate,
         status: 'To Redeem',
-        notes: perk.notes + `\n(Renewed on ${new Date().toLocaleDateString('en-US')})`
+        notes: (perk.notes || '') + `\n(Renewed on ${new Date().toLocaleDateString('en-US')})`
       });
 
       // Update local state

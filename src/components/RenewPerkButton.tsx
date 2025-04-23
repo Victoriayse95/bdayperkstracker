@@ -11,9 +11,9 @@ interface RenewPerkButtonProps {
 const RenewPerkButton = ({ perk, onRenew }: RenewPerkButtonProps) => {
   const [isRenewing, setIsRenewing] = useState(false);
   
-  // Calculate a new expiry date exactly one year from the current expiry
-  const getNextYearExpiry = (currentDate: string): string => {
-    const date = new Date(currentDate);
+  // Calculate a new date exactly one year from the provided date
+  const addOneYear = (dateString: string): string => {
+    const date = new Date(dateString);
     date.setFullYear(date.getFullYear() + 1);
     return date.toLocaleDateString('en-US', { 
       year: 'numeric', 
@@ -27,27 +27,16 @@ const RenewPerkButton = ({ perk, onRenew }: RenewPerkButtonProps) => {
     
     setIsRenewing(true);
     try {
-      // Calculate next year's dates
-      const currentStartDate = new Date(perk.startDate);
-      const nextStartDate = new Date();
-      nextStartDate.setMonth(currentStartDate.getMonth());
-      nextStartDate.setDate(currentStartDate.getDate());
-      
-      // Format dates in MM/DD/YYYY format
-      const formattedStartDate = nextStartDate.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      });
-      
-      const formattedExpiryDate = getNextYearExpiry(perk.expiry);
+      // Add one year to both the start date and expiry date
+      const newStartDate = addOneYear(perk.startDate);
+      const newExpiryDate = addOneYear(perk.expiry);
       
       // Reset status to 'To Redeem' and update dates
       await onRenew(perk.id!, {
-        startDate: formattedStartDate,
-        expiry: formattedExpiryDate,
+        startDate: newStartDate,
+        expiry: newExpiryDate,
         status: 'To Redeem',
-        notes: perk.notes + `\n(Renewed on ${new Date().toLocaleDateString('en-US')})`
+        notes: (perk.notes || '') + `\n(Renewed on ${new Date().toLocaleDateString('en-US')})`
       });
     } catch (error) {
       console.error('Error renewing perk:', error);
