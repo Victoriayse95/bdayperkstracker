@@ -3,11 +3,9 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { getAllPerks, deletePerk, updatePerk, Perk, samplePerks } from '../../firebase/services';
-import CategoryFilter, { PerkCategory } from '../../components/CategoryFilter';
 import SortingOptions, { SortOption } from '../../components/SortingOptions';
 import StatusFilter, { PerkStatus } from '../../components/StatusFilter';
 import SearchBar from '../../components/SearchBar';
-import CalendarView from '../../components/CalendarView';
 import QuickActionButtons from '../../components/QuickActionButtons';
 import RenewPerkButton from '../../components/RenewPerkButton';
 
@@ -20,10 +18,10 @@ export default function PerksPage() {
   const [usingSample, setUsingSample] = useState(false);
   const [editingPerk, setEditingPerk] = useState<Perk | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState<PerkCategory[]>(['food', 'beauty', 'retail', 'entertainment', 'other']);
   const [selectedStatuses, setSelectedStatuses] = useState<PerkStatus[]>(['To Redeem', 'Redeemed']);
   const [sortOption, setSortOption] = useState<SortOption>('expiry-asc');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [actionsOpenFor, setActionsOpenFor] = useState<string | null>(null);
 
   const fetchPerks = async () => {
     try {
@@ -69,24 +67,21 @@ export default function PerksPage() {
   }, []);
 
   useEffect(() => {
-    // Apply filters whenever perks, search term, or selected categories change
+    // Apply filters whenever perks, search term, or selected status change
     const filtered = perks.filter(perk => {
       const matchesSearch = searchTerm === '' || 
         perk.business.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (perk.benefits && perk.benefits.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (perk.notes && perk.notes.toLowerCase().includes(searchTerm.toLowerCase()));
       
-      const matchesCategory = selectedCategories.length === 0 || 
-        (perk.category && selectedCategories.includes(perk.category as PerkCategory));
-      
       const matchesStatus = selectedStatuses.length === 0 ||
         (perk.status && selectedStatuses.includes(perk.status));
       
-      return matchesSearch && matchesCategory && matchesStatus;
+      return matchesSearch && matchesStatus;
     });
     
     setFilteredPerks(filtered);
-  }, [perks, searchTerm, selectedCategories, selectedStatuses]);
+  }, [perks, searchTerm, selectedStatuses]);
 
   // Apply sorting to filtered perks
   useEffect(() => {
@@ -142,6 +137,14 @@ export default function PerksPage() {
       } catch (error) {
         console.error('Error deleting perk:', error);
       }
+    }
+  };
+
+  const toggleActionsMenu = (perkId: string) => {
+    if (actionsOpenFor === perkId) {
+      setActionsOpenFor(null);
+    } else {
+      setActionsOpenFor(perkId);
     }
   };
 
@@ -266,9 +269,6 @@ export default function PerksPage() {
 
       {perks.length > 0 && (
         <>
-          {/* Calendar View */}
-          <CalendarView perks={perks} />
-        
           {/* Filters and Controls */}
           <div className="mb-6">
             <button 
@@ -285,7 +285,6 @@ export default function PerksPage() {
               <SearchBar onSearch={setSearchTerm} />
               <div className="flex flex-col md:flex-row gap-3">
                 <SortingOptions currentSort={sortOption} onSortChange={setSortOption} />
-                <CategoryFilter selectedCategories={selectedCategories} onCategoryChange={setSelectedCategories} />
                 <StatusFilter selectedStatuses={selectedStatuses} onStatusChange={setSelectedStatuses} />
               </div>
             </div>
@@ -305,7 +304,7 @@ export default function PerksPage() {
 
           {sortedPerks.length === 0 ? (
             <div className="bg-yellow-50 p-4 rounded-md my-4">
-              <p className="text-yellow-700">No perks found matching your filters. Try adjusting your search or category filters.</p>
+              <p className="text-yellow-700">No perks found matching your filters. Try adjusting your search or status filters.</p>
             </div>
           ) : (
             <div className="overflow-x-auto w-full border border-gray-200 sm:rounded-lg shadow">
@@ -400,29 +399,44 @@ export default function PerksPage() {
                           {perk.notes}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex flex-col space-y-2">
-                            <QuickActionButtons 
-                              perk={perk} 
-                              onStatusChange={handleUpdate} 
-                            />
-                            <RenewPerkButton
-                              perk={perk}
-                              onRenew={handleUpdate}
-                            />
-                            <div className="flex space-x-2">
-                              <Link 
-                                href={`/perks/${perk.id}/edit`}
-                                className="text-indigo-600 hover:text-indigo-900"
-                              >
-                                Edit
-                              </Link>
-                              <button 
-                                onClick={() => handleDelete(perk.id!)}
-                                className="text-red-600 hover:text-red-900"
-                              >
-                                Delete
-                              </button>
-                            </div>
+                          <div className="relative">
+                            <button 
+                              onClick={() => toggleActionsMenu(perk.id!)}
+                              className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-1 px-3 rounded inline-flex items-center"
+                            >
+                              <span>Actions</span>
+                              <svg className={`fill-current h-4 w-4 ml-1 transition-transform ${actionsOpenFor === perk.id ? 'transform rotate-180' : ''}`} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                              </svg>
+                            </button>
+                            {actionsOpenFor === perk.id && (
+                              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md overflow-hidden shadow-lg z-10">
+                                <div className="py-1 border-b">
+                                  <QuickActionButtons 
+                                    perk={perk} 
+                                    onStatusChange={handleUpdate} 
+                                  />
+                                  <RenewPerkButton
+                                    perk={perk}
+                                    onRenew={handleUpdate}
+                                  />
+                                </div>
+                                <div className="py-1">
+                                  <Link 
+                                    href={`/perks/${perk.id}/edit`}
+                                    className="block px-4 py-2 text-sm text-indigo-700 hover:bg-gray-100 hover:text-indigo-900 w-full text-left"
+                                  >
+                                    Edit
+                                  </Link>
+                                  <button 
+                                    onClick={() => handleDelete(perk.id!)}
+                                    className="block px-4 py-2 text-sm text-red-600 hover:bg-gray-100 hover:text-red-900 w-full text-left"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </td>
                       </tr>

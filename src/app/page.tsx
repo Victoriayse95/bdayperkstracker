@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { getAllPerks, Perk, samplePerks } from '../firebase/services';
+import { getAllPerks, Perk, samplePerks, updatePerk } from '../firebase/services';
+import CalendarView from '../components/CalendarView';
 
 export default function Home() {
   const [perks, setPerks] = useState<Perk[]>([]);
@@ -154,6 +155,61 @@ export default function Home() {
     return currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
   };
 
+  // Mark perk as redeemed
+  const handleMarkRedeemed = async (perkId: string) => {
+    try {
+      await updatePerk(perkId, { status: 'Redeemed' });
+      // Update local state
+      setPerks(currentPerks => 
+        currentPerks.map(perk => 
+          perk.id === perkId ? { ...perk, status: 'Redeemed' } : perk
+        )
+      );
+    } catch (error) {
+      console.error('Error updating perk status:', error);
+    }
+  };
+
+  // Renew perk for next year
+  const handleRenewPerk = async (perk: Perk) => {
+    try {
+      // Calculate next year's dates
+      const currentStartDate = new Date(perk.startDate);
+      const nextStartDate = new Date();
+      nextStartDate.setMonth(currentStartDate.getMonth());
+      nextStartDate.setDate(currentStartDate.getDate());
+      
+      // Format dates in MM/DD/YYYY format
+      const formattedStartDate = nextStartDate.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+      
+      // Calculate a new expiry date exactly one year from the current expiry
+      const expiryDate = new Date(perk.expiry);
+      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+      const formattedExpiryDate = expiryDate.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit' 
+      });
+      
+      // Reset status to 'To Redeem' and update dates
+      await updatePerk(perk.id!, {
+        startDate: formattedStartDate,
+        expiry: formattedExpiryDate,
+        status: 'To Redeem',
+        notes: perk.notes + `\n(Renewed on ${new Date().toLocaleDateString('en-US')})`
+      });
+
+      // Update local state
+      await fetchPerks();
+    } catch (error) {
+      console.error('Error renewing perk:', error);
+    }
+  };
+
   return (
     <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div className="my-6">
@@ -280,12 +336,44 @@ export default function Home() {
                         {perk.notes}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <Link 
-                          href={`/perks/${perk.id}`}
-                          className="text-indigo-600 hover:text-indigo-900 mr-3"
-                        >
-                          View Details
-                        </Link>
+                        <div className="relative group">
+                          <button className="bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold py-1 px-3 rounded inline-flex items-center">
+                            <span>Actions</span>
+                            <svg className="fill-current h-4 w-4 ml-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                            </svg>
+                          </button>
+                          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md overflow-hidden shadow-lg z-10 hidden group-hover:block">
+                            <div className="py-1 border-b">
+                              <button
+                                onClick={() => handleMarkRedeemed(perk.id!)}
+                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left"
+                              >
+                                Mark Redeemed
+                              </button>
+                              <button
+                                onClick={() => handleRenewPerk(perk)}
+                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left"
+                              >
+                                Renew for Next Year
+                              </button>
+                            </div>
+                            <div className="py-1">
+                              <Link 
+                                href={`/perks/${perk.id}/edit`}
+                                className="block px-4 py-2 text-sm text-indigo-700 hover:bg-gray-100 hover:text-indigo-900 w-full text-left"
+                              >
+                                Edit
+                              </Link>
+                              <Link 
+                                href={`/perks/${perk.id}`}
+                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left"
+                              >
+                                View Details
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
                       </td>
                     </tr>
                   )})}
@@ -304,6 +392,12 @@ export default function Home() {
           </div>
         </>
       )}
+      
+      {/* Calendar View */}
+      <div className="mt-10">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">Perk Calendar</h2>
+        <CalendarView perks={perks} />
+      </div>
     </div>
   );
 }
