@@ -3,13 +3,27 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { getAllPerks, deletePerk, updatePerk, Perk, samplePerks } from '../../firebase/services';
+import CategoryFilter, { PerkCategory } from '../../components/CategoryFilter';
+import SortingOptions, { SortOption } from '../../components/SortingOptions';
+import StatusFilter, { PerkStatus } from '../../components/StatusFilter';
+import SearchBar from '../../components/SearchBar';
+import CalendarView from '../../components/CalendarView';
+import QuickActionButtons from '../../components/QuickActionButtons';
+import RenewPerkButton from '../../components/RenewPerkButton';
 
 export default function PerksPage() {
   const [perks, setPerks] = useState<Perk[]>([]);
+  const [filteredPerks, setFilteredPerks] = useState<Perk[]>([]);
+  const [sortedPerks, setSortedPerks] = useState<Perk[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [usingSample, setUsingSample] = useState(false);
   const [editingPerk, setEditingPerk] = useState<Perk | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState<PerkCategory[]>(['food', 'beauty', 'retail', 'entertainment', 'other']);
+  const [selectedStatuses, setSelectedStatuses] = useState<PerkStatus[]>(['To Redeem', 'Redeemed']);
+  const [sortOption, setSortOption] = useState<SortOption>('expiry-asc');
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
 
   const fetchPerks = async () => {
     try {
@@ -20,6 +34,7 @@ export default function PerksPage() {
         if (loading) {
           console.log('Fetch taking too long, using sample data as fallback');
           setPerks(samplePerks);
+          setFilteredPerks(samplePerks);
           setUsingSample(true);
           setLoading(false);
         }
@@ -31,6 +46,7 @@ export default function PerksPage() {
       clearTimeout(timeoutId);
       
       setPerks(fetchedPerks);
+      setFilteredPerks(fetchedPerks);
       setError(null);
       
       // Check if we're using sample data (as defined in services.ts)
@@ -41,6 +57,7 @@ export default function PerksPage() {
       console.error('Error fetching perks:', err);
       setError('Failed to load perks. Using sample data for display.');
       setPerks(samplePerks);
+      setFilteredPerks(samplePerks);
       setUsingSample(true);
     } finally {
       setLoading(false);
@@ -50,6 +67,46 @@ export default function PerksPage() {
   useEffect(() => {
     fetchPerks();
   }, []);
+
+  useEffect(() => {
+    // Apply filters whenever perks, search term, or selected categories change
+    const filtered = perks.filter(perk => {
+      const matchesSearch = searchTerm === '' || 
+        perk.business.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (perk.benefits && perk.benefits.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (perk.notes && perk.notes.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      const matchesCategory = selectedCategories.length === 0 || 
+        (perk.category && selectedCategories.includes(perk.category as PerkCategory));
+      
+      const matchesStatus = selectedStatuses.length === 0 ||
+        (perk.status && selectedStatuses.includes(perk.status));
+      
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
+    
+    setFilteredPerks(filtered);
+  }, [perks, searchTerm, selectedCategories, selectedStatuses]);
+
+  // Apply sorting to filtered perks
+  useEffect(() => {
+    const sorted = [...filteredPerks].sort((a, b) => {
+      switch (sortOption) {
+        case 'expiry-asc':
+          return new Date(a.expiry).getTime() - new Date(b.expiry).getTime();
+        case 'expiry-desc':
+          return new Date(b.expiry).getTime() - new Date(a.expiry).getTime();
+        case 'business-asc':
+          return a.business.localeCompare(b.business);
+        case 'business-desc':
+          return b.business.localeCompare(a.business);
+        default:
+          return 0;
+      }
+    });
+    
+    setSortedPerks(sorted);
+  }, [filteredPerks, sortOption]);
 
   const handleEdit = (perk: Perk) => {
     setEditingPerk(perk);
@@ -209,129 +266,172 @@ export default function PerksPage() {
 
       {perks.length > 0 && (
         <>
-          <div className="flex justify-between items-center mb-6">
-            <div className="w-1/3">
-              <input
-                type="text"
-                placeholder="Search perks..."
-                className="px-3 py-2 border border-gray-300 rounded-md w-full"
-              />
+          {/* Calendar View */}
+          <CalendarView perks={perks} />
+        
+          {/* Filters and Controls */}
+          <div className="mb-6">
+            <button 
+              className="md:hidden mb-4 w-full py-2 px-4 flex justify-between items-center border border-gray-300 rounded-md bg-white shadow-sm"
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+            >
+              <span className="text-sm font-medium text-gray-700">Filters & Sort</span>
+              <svg className={`w-5 h-5 transition-transform ${showMobileFilters ? 'transform rotate-180' : ''}`} viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+            
+            <div className={`${showMobileFilters || 'hidden md:flex'} flex-col md:flex-row gap-4 mb-4`}>
+              <SearchBar onSearch={setSearchTerm} />
+              <div className="flex flex-col md:flex-row gap-3">
+                <SortingOptions currentSort={sortOption} onSortChange={setSortOption} />
+                <CategoryFilter selectedCategories={selectedCategories} onCategoryChange={setSelectedCategories} />
+                <StatusFilter selectedStatuses={selectedStatuses} onStatusChange={setSelectedStatuses} />
+              </div>
             </div>
-            <div>
-              <Link
-                href="/perks/new"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-              >
-                Add New Perk
-              </Link>
+          </div>
+          
+          <div className="flex justify-between items-center mb-4">
+            <div className="text-sm text-gray-600">
+              Showing {sortedPerks.length} {sortedPerks.length === 1 ? 'perk' : 'perks'}
             </div>
+            <Link
+              href="/perks/new"
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+            >
+              Add New Perk
+            </Link>
           </div>
 
-          <div className="overflow-x-auto w-full border border-gray-200 sm:rounded-lg shadow">
-            <div className="min-w-full">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
-                      <span>Business Name</span>
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
-                      Redemption Phone
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
-                      Redemption Email
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
-                      Redemption Link
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer min-w-[250px]">
-                      Benefits
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
-                      Start Date
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
-                      Expiry Date
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">
-                      Notes
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {perks.map((perk) => (
-                    <tr key={perk.id} className={getRowBackgroundClass(perk.status)}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {perk.business}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {perk.redemptionPhone}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {perk.redemptionEmail}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {perk.redemptionLink ? (
-                          <a href={perk.redemptionLink} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-900">
-                            {perk.redemptionLink.length > 25 ? `${perk.redemptionLink.substring(0, 25)}...` : perk.redemptionLink}
-                          </a>
-                        ) : '-'}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500 min-w-[250px] break-words">
-                        {perk.benefits || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {perk.startDate}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {perk.expiry}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-col">
-                          <select 
-                            value={perk.status}
-                            onChange={(e) => handleUpdate(perk.id!, { status: e.target.value as 'To Redeem' | 'Redeemed' })}
-                            className={`px-3 py-1 text-xs leading-5 font-semibold rounded-full ${getStatusColor(perk.status)}`}
-                          >
-                            <option value="To Redeem">To Redeem</option>
-                            <option value="Redeemed">Redeemed</option>
-                          </select>
-                          {perk.expiry && (
-                            <span className={`mt-1 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getExpiryBadgeClass(getDaysRemaining(perk.expiry))}`}>
-                              {getExpiryStatusText(perk.expiry)}
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500 break-words min-w-[200px]">
-                        {perk.notes}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <Link 
-                          href={`/perks/${perk.id}/edit`}
-                          className="text-indigo-600 hover:text-indigo-900 mr-3"
-                        >
-                          Edit
-                        </Link>
-                        <button 
-                          onClick={() => handleDelete(perk.id!)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {sortedPerks.length === 0 ? (
+            <div className="bg-yellow-50 p-4 rounded-md my-4">
+              <p className="text-yellow-700">No perks found matching your filters. Try adjusting your search or category filters.</p>
             </div>
-          </div>
+          ) : (
+            <div className="overflow-x-auto w-full border border-gray-200 sm:rounded-lg shadow">
+              <div className="min-w-full">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
+                        <span>Business Name</span>
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
+                        Category
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
+                        Redemption Phone
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
+                        Redemption Email
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
+                        Redemption Link
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer min-w-[250px]">
+                        Benefits
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
+                        Start Date
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
+                        Expiry Date
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
+                        Status
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">
+                        Notes
+                      </th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {sortedPerks.map((perk) => (
+                      <tr key={perk.id} className={getRowBackgroundClass(perk.status)}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {perk.business}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {perk.category || '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {perk.redemptionPhone}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {perk.redemptionEmail}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {perk.redemptionLink ? (
+                            <a href={perk.redemptionLink} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-900">
+                              {perk.redemptionLink.length > 25 ? `${perk.redemptionLink.substring(0, 25)}...` : perk.redemptionLink}
+                            </a>
+                          ) : '-'}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500 min-w-[250px] break-words">
+                          {perk.benefits || '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {formatDate(perk.startDate)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {formatDate(perk.expiry)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex flex-col">
+                            <select 
+                              value={perk.status}
+                              onChange={(e) => handleUpdate(perk.id!, { status: e.target.value as 'To Redeem' | 'Redeemed' })}
+                              className={`px-3 py-1 text-xs leading-5 font-semibold rounded-full ${getStatusColor(perk.status)}`}
+                            >
+                              <option value="To Redeem">To Redeem</option>
+                              <option value="Redeemed">Redeemed</option>
+                            </select>
+                            {perk.expiry && (
+                              <span className={`mt-1 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getExpiryBadgeClass(getDaysRemaining(perk.expiry))}`}>
+                                {getExpiryStatusText(perk.expiry)}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500 break-words min-w-[200px]">
+                          {perk.notes}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex flex-col space-y-2">
+                            <QuickActionButtons 
+                              perk={perk} 
+                              onStatusChange={handleUpdate} 
+                            />
+                            <RenewPerkButton
+                              perk={perk}
+                              onRenew={handleUpdate}
+                            />
+                            <div className="flex space-x-2">
+                              <Link 
+                                href={`/perks/${perk.id}/edit`}
+                                className="text-indigo-600 hover:text-indigo-900"
+                              >
+                                Edit
+                              </Link>
+                              <button 
+                                onClick={() => handleDelete(perk.id!)}
+                                className="text-red-600 hover:text-red-900"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
