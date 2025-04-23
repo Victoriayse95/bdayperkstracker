@@ -9,10 +9,53 @@ interface CalendarViewProps {
   perks: Perk[];
 }
 
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+}
+
+// Modal component for displaying all perks on a specific date
+const Modal = ({ isOpen, onClose, title, children }: ModalProps) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[80vh] overflow-hidden">
+        <div className="flex justify-between items-center p-4 border-b">
+          <h3 className="text-lg font-medium">{title}</h3>
+          <button 
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 focus:outline-none"
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="p-4 overflow-y-auto max-h-[60vh]">
+          {children}
+        </div>
+        <div className="p-4 border-t flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const CalendarView = ({ perks }: CalendarViewProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Helper to check if a perk expires on a specific date
   const getPerksByDate = (date: Date) => {
@@ -56,6 +99,11 @@ const CalendarView = ({ perks }: CalendarViewProps) => {
 
   const toggleViewMode = () => {
     setViewMode(viewMode === 'grid' ? 'list' : 'grid');
+  };
+
+  const openDayDetailsModal = (day: Date) => {
+    setSelectedDay(day);
+    setIsModalOpen(true);
   };
 
   const renderHeader = () => {
@@ -137,7 +185,12 @@ const CalendarView = ({ perks }: CalendarViewProps) => {
                   </Link>
                 ))}
                 {perksForDay.length > 2 && (
-                  <span className="text-xs text-gray-500">+{perksForDay.length - 2} more</span>
+                  <button 
+                    onClick={() => openDayDetailsModal(cloneDay)}
+                    className="text-xs text-indigo-600 hover:text-indigo-800 hover:underline px-1 py-0.5 rounded"
+                  >
+                    +{perksForDay.length - 2} more
+                  </button>
                 )}
               </div>
             )}
@@ -185,6 +238,40 @@ const CalendarView = ({ perks }: CalendarViewProps) => {
     );
   };
 
+  // Render perks list for the selected day in modal
+  const renderDayPerks = () => {
+    if (!selectedDay) return null;
+    
+    const perksForSelectedDay = getPerksByDate(selectedDay);
+    
+    return (
+      <ul className="divide-y divide-gray-200">
+        {perksForSelectedDay.map(perk => (
+          <li key={perk.id} className="py-3">
+            <Link 
+              href={`/perks/${perk.id}`}
+              className="block hover:bg-gray-50 p-2 rounded"
+              onClick={() => setIsModalOpen(false)}
+            >
+              <div className="flex justify-between items-center mb-1">
+                <p className="font-medium text-gray-900">{perk.business}</p>
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                  perk.status === 'Redeemed' ? 'bg-gray-100 text-gray-800' : 'bg-green-100 text-green-800'
+                }`}>
+                  {perk.status}
+                </span>
+              </div>
+              <div className="text-xs text-gray-600 mt-1">
+                <p>Expires: {format(new Date(perk.expiry), 'MMMM d, yyyy')}</p>
+                {perk.benefits && <p className="mt-1">{perk.benefits}</p>}
+              </div>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
   return (
     <div className="bg-white rounded-md shadow-sm border p-4 mb-6 overflow-hidden">
       <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
@@ -218,6 +305,15 @@ const CalendarView = ({ perks }: CalendarViewProps) => {
           )}
         </>
       )}
+      
+      {/* Modal for displaying all perks on a specific day */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={selectedDay ? `Perks for ${format(selectedDay, 'MMMM d, yyyy')}` : 'Perks'}
+      >
+        {renderDayPerks()}
+      </Modal>
     </div>
   );
 };

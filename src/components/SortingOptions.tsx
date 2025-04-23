@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export type SortOption = 'expiry-asc' | 'expiry-desc' | 'business-asc' | 'business-desc';
+export type SortOption = 'expiry-asc' | 'expiry-desc' | 'business-asc' | 'business-desc' | 'month-asc' | 'month-desc';
 
 interface SortingOptionsProps {
   onSortChange: (sortOption: SortOption) => void;
@@ -15,6 +15,8 @@ const SortingOptions = ({ onSortChange, currentSort }: SortingOptionsProps) => {
   const sortOptions = [
     { value: 'expiry-asc', label: 'Expiry Date (Earliest First)' },
     { value: 'expiry-desc', label: 'Expiry Date (Latest First)' },
+    { value: 'month-asc', label: 'Month (Jan to Dec)' },
+    { value: 'month-desc', label: 'Month (Dec to Jan)' },
     { value: 'business-asc', label: 'Business Name (A-Z)' },
     { value: 'business-desc', label: 'Business Name (Z-A)' },
   ];

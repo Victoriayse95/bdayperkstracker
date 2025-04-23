@@ -95,6 +95,16 @@ export default function PerksPage() {
           return a.business.localeCompare(b.business);
         case 'business-desc':
           return b.business.localeCompare(a.business);
+        case 'month-asc':
+          // Sort by month (January to December)
+          const monthA = new Date(a.expiry).getMonth();
+          const monthB = new Date(b.expiry).getMonth();
+          return monthA - monthB || new Date(a.expiry).getDate() - new Date(b.expiry).getDate();
+        case 'month-desc':
+          // Sort by month (December to January)
+          const monthADesc = new Date(a.expiry).getMonth();
+          const monthBDesc = new Date(b.expiry).getMonth();
+          return monthBDesc - monthADesc || new Date(a.expiry).getDate() - new Date(b.expiry).getDate();
         default:
           return 0;
       }
