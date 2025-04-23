@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { getAllPerks, Perk, samplePerks, updatePerk } from '../firebase/services';
+import { getAllPerks, Perk, samplePerks } from '../firebase/services';
 
 export default function Home() {
   const [perks, setPerks] = useState<Perk[]>([]);
@@ -10,13 +10,21 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [usingSample, setUsingSample] = useState(false);
   const [currentDate] = useState(new Date());
-  const [updatingIds, setUpdatingIds] = useState<string[]>([]);
 
-  // Filter for current month perks
+  // Filter for current month perks that aren't expired
   const currentMonthPerks = perks.filter(perk => {
     const expiryDate = new Date(perk.expiry);
-    return expiryDate.getMonth() === currentDate.getMonth() && 
-           expiryDate.getFullYear() === currentDate.getFullYear();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Check if not expired
+    const notExpired = expiryDate.getTime() >= today.getTime();
+    
+    // Check if in current month
+    const inCurrentMonth = expiryDate.getMonth() === currentDate.getMonth() && 
+                          expiryDate.getFullYear() === currentDate.getFullYear();
+                          
+    return inCurrentMonth && notExpired;
   });
 
   const fetchPerks = async () => {
@@ -59,47 +67,6 @@ export default function Home() {
     fetchPerks();
   }, []);
 
-  // Auto-update perks that are expiring soon
-  useEffect(() => {
-    const updateExpiringPerks = async () => {
-      const updatedPerks = [...perks];
-      let hasChanges = false;
-      
-      for (let i = 0; i < updatedPerks.length; i++) {
-        const perk = updatedPerks[i];
-        if (!perk.id) continue;
-        
-        const daysRemaining = getDaysRemaining(perk.expiry);
-        
-        // If expiring within 7 days and status is "To Redeem", update to "Expiring in 7 days"
-        if (daysRemaining > 0 && daysRemaining <= 7 && perk.status === 'To Redeem') {
-          // Only update if we're not already updating this perk
-          if (!updatingIds.includes(perk.id)) {
-            setUpdatingIds(prev => [...prev, perk.id as string]);
-            
-            try {
-              await updatePerk(perk.id, { status: 'Expiring in 7 days' });
-              updatedPerks[i] = { ...perk, status: 'Expiring in 7 days' };
-              hasChanges = true;
-            } catch (err) {
-              console.error(`Error updating perk ${perk.id}:`, err);
-            } finally {
-              setUpdatingIds(prev => prev.filter(id => id !== perk.id));
-            }
-          }
-        }
-      }
-      
-      if (hasChanges) {
-        setPerks(updatedPerks);
-      }
-    };
-    
-    if (perks.length > 0 && !loading) {
-      updateExpiringPerks();
-    }
-  }, [perks, loading, updatingIds]);
-
   // Calculate days remaining until expiry
   const getDaysRemaining = (expiryDateStr: string): number => {
     const today = new Date();
@@ -118,10 +85,6 @@ export default function Home() {
         return 'bg-green-100 text-green-800';
       case 'Redeemed':
         return 'bg-white text-gray-600';
-      case 'Expired':
-        return 'bg-gray-200 text-gray-700';
-      case 'Expiring in 7 days':
-        return 'bg-red-100 text-red-800';
       default:
         return 'bg-white text-gray-600';
     }
@@ -147,20 +110,29 @@ export default function Home() {
     return formatDate(expiryDateStr);
   };
 
-  // Get row background class based on status
-  const getRowBackgroundClass = (status: string, daysRemaining: number): string => {
-    switch (status) {
-      case 'To Redeem':
-        return 'bg-green-50';
-      case 'Redeemed':
-        return '';
-      case 'Expired':
-        return 'bg-gray-100';
-      case 'Expiring in 7 days':
-        return 'bg-red-50';
-      default:
-        return '';
+  // Get expiry badge class based on days remaining
+  const getExpiryBadgeClass = (daysRemaining: number): string => {
+    if (daysRemaining <= 2) {
+      return 'bg-red-100 text-red-800';
+    } else if (daysRemaining <= 7) {
+      return 'bg-yellow-100 text-yellow-800';
     }
+    return 'bg-blue-100 text-blue-800';
+  };
+
+  // Get row background class based on status and days remaining
+  const getRowBackgroundClass = (status: string, daysRemaining: number): string => {
+    if (status === 'To Redeem') {
+      if (daysRemaining <= 2) {
+        return 'bg-red-50';
+      } else if (daysRemaining <= 7) {
+        return 'bg-yellow-50';
+      }
+      return 'bg-green-50';
+    } else if (status === 'Redeemed') {
+      return '';
+    }
+    return '';
   };
 
   const getCurrentMonthName = (): string => {
@@ -196,7 +168,7 @@ export default function Home() {
 
       {currentMonthPerks.length === 0 && !loading ? (
         <div className="bg-blue-50 p-4 rounded-md my-4">
-          <p className="text-blue-700">No perks expiring this month. Check back later or add new perks!</p>
+          <p className="text-blue-700">No active perks expiring this month. Check back later or add new perks!</p>
           <Link
             href="/perks/new"
             className="mt-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
@@ -216,11 +188,23 @@ export default function Home() {
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
                       <span>Business Name</span>
                     </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
+                      Redemption Phone
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
+                      Redemption Email
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
+                      Redemption Link
+                    </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer min-w-[250px]">
                       Benefits
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
                       Start Date
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
+                      Expiry Date
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
                       Status
@@ -237,6 +221,7 @@ export default function Home() {
                   {currentMonthPerks.map((perk) => {
                     const daysRemaining = getDaysRemaining(perk.expiry);
                     const statusClass = getStatusClass(perk.status);
+                    const expiryBadgeClass = getExpiryBadgeClass(daysRemaining);
                     const rowBackgroundClass = getRowBackgroundClass(perk.status, daysRemaining);
                     
                     return (
@@ -244,22 +229,36 @@ export default function Home() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {perk.business}
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {perk.redemptionPhone}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {perk.redemptionEmail}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {perk.redemptionLink ? (
+                          <a href={perk.redemptionLink} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-900">
+                            {perk.redemptionLink.length > 25 ? `${perk.redemptionLink.substring(0, 25)}...` : perk.redemptionLink}
+                          </a>
+                        ) : '-'}
+                      </td>
                       <td className="px-6 py-4 text-sm text-gray-500 min-w-[250px] break-words">
                         {perk.benefits || '-'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(perk.startDate)}
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {formatDate(perk.expiry)}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col">
                           <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}`}>
                             {perk.status}
                           </span>
-                          {perk.status === 'Expiring in 7 days' && (
-                            <span className="mt-1 text-xs text-red-600">
-                              {getExpiryStatusText(perk.expiry)}
-                            </span>
-                          )}
+                          <span className={`mt-1 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${expiryBadgeClass}`}>
+                            {getExpiryStatusText(perk.expiry)}
+                          </span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500 break-words min-w-[200px]">

@@ -94,10 +94,6 @@ export default function PerksPage() {
         return 'bg-green-100 text-green-800';
       case 'Redeemed':
         return 'bg-white text-gray-600';
-      case 'Expired':
-        return 'bg-gray-200 text-gray-700';
-      case 'Expiring in 7 days':
-        return 'bg-red-100 text-red-800';
       default:
         return 'bg-white text-gray-600';
     }
@@ -117,6 +113,47 @@ export default function PerksPage() {
       default:
         return '';
     }
+  };
+
+  // Calculate days remaining until expiry
+  const getDaysRemaining = (expiryDateStr: string): number => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const expiryDate = new Date(expiryDateStr);
+    expiryDate.setHours(0, 0, 0, 0);
+    
+    const diffTime = expiryDate.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  // Get expiry status text
+  const getExpiryStatusText = (expiryDateStr: string): string => {
+    const daysRemaining = getDaysRemaining(expiryDateStr);
+    
+    if (daysRemaining <= 0) {
+      return 'Expired';
+    } else if (daysRemaining === 1) {
+      return 'Expires tomorrow!';
+    } else if (daysRemaining <= 7) {
+      return `Expires in ${daysRemaining} days`;
+    }
+    return formatDate(expiryDateStr);
+  };
+
+  // Get expiry badge class based on days remaining
+  const getExpiryBadgeClass = (daysRemaining: number): string => {
+    if (daysRemaining <= 2) {
+      return 'bg-red-100 text-red-800';
+    } else if (daysRemaining <= 7) {
+      return 'bg-yellow-100 text-yellow-800';
+    }
+    return 'bg-blue-100 text-blue-800';
+  };
+
+  // Format date to readable string
+  const formatDate = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
   return (
@@ -244,15 +281,21 @@ export default function PerksPage() {
                         {perk.expiry}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <select 
-                          value={perk.status}
-                          onChange={(e) => handleUpdate(perk.id!, { status: e.target.value as 'To Redeem' | 'Redeemed' | 'Expired' })}
-                          className={`px-2 text-xs leading-5 font-semibold rounded-full ${getStatusColor(perk.status)}`}
-                        >
-                          <option value="To Redeem">To Redeem</option>
-                          <option value="Redeemed">Redeemed</option>
-                          <option value="Expired">Expired</option>
-                        </select>
+                        <div className="flex flex-col">
+                          <select 
+                            value={perk.status}
+                            onChange={(e) => handleUpdate(perk.id!, { status: e.target.value as 'To Redeem' | 'Redeemed' })}
+                            className={`px-3 py-1 text-xs leading-5 font-semibold rounded-full ${getStatusColor(perk.status)}`}
+                          >
+                            <option value="To Redeem">To Redeem</option>
+                            <option value="Redeemed">Redeemed</option>
+                          </select>
+                          {perk.expiry && (
+                            <span className={`mt-1 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getExpiryBadgeClass(getDaysRemaining(perk.expiry))}`}>
+                              {getExpiryStatusText(perk.expiry)}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500 break-words min-w-[200px]">
                         {perk.notes}

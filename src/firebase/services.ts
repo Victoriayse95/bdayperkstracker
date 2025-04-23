@@ -28,7 +28,7 @@ export interface Perk {
   redemptionEmail: string;
   redemptionLink?: string;
   benefits?: string;
-  status: 'To Redeem' | 'Redeemed' | 'Expired' | 'Expiring in 7 days';
+  status: 'To Redeem' | 'Redeemed';
   notes: string;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
@@ -72,7 +72,7 @@ export const samplePerks: Perk[] = [
     redemptionEmail: "support@baskinrobbins.com",
     redemptionLink: "https://www.baskinrobbins.com/birthday-club",
     benefits: "Free ice cream scoop (any flavor)",
-    status: "Expired",
+    status: "To Redeem",
     notes: "Free ice cream scoop - birthday club membership needed"
   }
 ];

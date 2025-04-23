@@ -59,8 +59,66 @@ export default function PerkDetailsPage({ params }: { params: { id: string } }) 
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
+  // Get status color class
+  const getStatusColorClass = (status: string) => {
+    switch (status) {
+      case 'To Redeem':
+        return 'bg-green-100 text-green-800';
+      case 'Redeemed':
+        return 'bg-white text-gray-600';
+      case 'Expired':
+        return 'bg-gray-200 text-gray-700';
+      default:
+        return 'bg-white text-gray-600';
+    }
+  };
+
+  // Determine if perk is expiring soon (within 7 days)
+  const isExpiringWithinDays = (days = 7) => {
+    if (!perk || !perk.expiry) return false;
+    
+    const daysRemaining = getDaysRemaining(perk.expiry);
+    return perk.status === 'To Redeem' && daysRemaining > 0 && daysRemaining <= days;
+  };
+
+  // Get expiry warning message and style
+  const getExpiryWarning = () => {
+    if (!perk || !perk.expiry) return null;
+    
+    const daysRemaining = getDaysRemaining(perk.expiry);
+    
+    if (daysRemaining <= 0) {
+      return {
+        message: `This perk expired on ${formatDate(perk.expiry)}.`,
+        className: 'bg-red-50 border-l-4 border-red-400',
+        iconClassName: 'text-red-400',
+        textClassName: 'text-red-700',
+        icon: (
+          <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          </svg>
+        )
+      };
+    } else if (daysRemaining <= 7) {
+      const urgencyLevel = daysRemaining <= 2 ? 'red' : 'yellow';
+      return {
+        message: `Expiring in ${daysRemaining} day${daysRemaining === 1 ? '' : 's'} on ${formatDate(perk.expiry)}.`,
+        className: urgencyLevel === 'red' ? 'bg-red-50 border-l-4 border-red-400' : 'bg-yellow-50 border-l-4 border-yellow-400',
+        iconClassName: urgencyLevel === 'red' ? 'text-red-400' : 'text-yellow-400',
+        textClassName: urgencyLevel === 'red' ? 'text-red-700' : 'text-yellow-700',
+        icon: (
+          <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+        )
+      };
+    }
+    
+    return null;
+  };
+
   // Handle status change
-  const handleStatusChange = async (newStatus: 'To Redeem' | 'Redeemed' | 'Expired' | 'Expiring in 7 days') => {
+  const handleStatusChange = async (newStatus: 'To Redeem' | 'Redeemed') => {
     if (!perk || newStatus === perk.status) return;
     
     try {
@@ -84,41 +142,47 @@ export default function PerkDetailsPage({ params }: { params: { id: string } }) 
     }
   };
 
-  // Get status color class
-  const getStatusColorClass = (status: string) => {
-    switch (status) {
-      case 'To Redeem':
-        return 'bg-green-100 text-green-800';
-      case 'Redeemed':
-        return 'bg-white text-gray-600';
-      case 'Expired':
-        return 'bg-gray-200 text-gray-700';
-      case 'Expiring in 7 days':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-white text-gray-600';
-    }
-  };
-
-  // Determine if perk is expiring soon
-  const shouldShowExpiringSoon = () => {
+  // Check if perk has expired
+  const isExpired = () => {
     if (!perk || !perk.expiry) return false;
+    return getDaysRemaining(perk.expiry) <= 0;
+  };
+  
+  // Get expiry comment based on days remaining
+  const getExpiryComment = () => {
+    if (!perk || !perk.expiry) return null;
     
     const daysRemaining = getDaysRemaining(perk.expiry);
-    return perk.status === 'To Redeem' && daysRemaining > 0 && daysRemaining <= 7;
-  };
-
-  // Auto-update status if needed
-  useEffect(() => {
-    if (perk && perk.status === 'To Redeem') {
-      const daysRemaining = getDaysRemaining(perk.expiry);
-      
-      // If expiring within 7 days and status is still "To Redeem", update to "Expiring in 7 days"
-      if (daysRemaining > 0 && daysRemaining <= 7 && perk.status !== 'Expiring in 7 days') {
-        handleStatusChange('Expiring in 7 days');
-      }
+    
+    if (daysRemaining <= 0) {
+      return {
+        message: `This perk expired on ${formatDate(perk.expiry)}.`,
+        className: 'bg-red-50 border-l-4 border-red-400',
+        iconClassName: 'text-red-400',
+        textClassName: 'text-red-700',
+        icon: (
+          <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          </svg>
+        )
+      };
+    } else if (daysRemaining <= 7) {
+      const urgencyLevel = daysRemaining <= 2 ? 'red' : 'yellow';
+      return {
+        message: `Expiring in ${daysRemaining} day${daysRemaining === 1 ? '' : 's'} on ${formatDate(perk.expiry)}.`,
+        className: urgencyLevel === 'red' ? 'bg-red-50 border-l-4 border-red-400' : 'bg-yellow-50 border-l-4 border-yellow-400',
+        iconClassName: urgencyLevel === 'red' ? 'text-red-400' : 'text-yellow-400',
+        textClassName: urgencyLevel === 'red' ? 'text-red-700' : 'text-yellow-700',
+        icon: (
+          <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+        )
+      };
     }
-  }, [perk]);
+    
+    return null;
+  };
 
   if (loading) {
     return (
@@ -160,10 +224,6 @@ export default function PerkDetailsPage({ params }: { params: { id: string } }) 
     );
   }
 
-  const daysRemaining = perk.expiry ? getDaysRemaining(perk.expiry) : 0;
-  const isExpiringSoon = daysRemaining > 0 && daysRemaining <= 7;
-  const isExpired = daysRemaining <= 0;
-
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {statusUpdateSuccess && (
@@ -193,24 +253,22 @@ export default function PerkDetailsPage({ params }: { params: { id: string } }) 
         </div>
       </div>
 
-      {shouldShowExpiringSoon() && (
-        <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4">
+      {perk.status === 'To Redeem' && getExpiryComment() && (
+        <div className={`mb-6 ${getExpiryComment()?.className} p-4`}>
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-              </svg>
+              <div className={getExpiryComment()?.iconClassName}>{getExpiryComment()?.icon}</div>
             </div>
             <div className="ml-3">
-              <p className="text-sm text-yellow-700">
-                <strong>Expiring Soon:</strong> This perk expires in {daysRemaining} day{daysRemaining === 1 ? '' : 's'} on {formatDate(perk.expiry)}.
+              <p className={`text-sm ${getExpiryComment()?.textClassName}`}>
+                <strong>{getDaysRemaining(perk.expiry) <= 0 ? 'Expired:' : 'Expiring Soon:'}</strong> {getExpiryComment()?.message}
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {isExpired && (
+      {isExpired() && perk.status !== 'Expired' && (
         <div className="mb-6 bg-red-50 border-l-4 border-red-400 p-4">
           <div className="flex">
             <div className="flex-shrink-0">
@@ -259,15 +317,13 @@ export default function PerkDetailsPage({ params }: { params: { id: string } }) 
                 
                 <div className="relative">
                   <select
-                    value={perk.status || 'To Redeem'}
-                    onChange={(e) => handleStatusChange(e.target.value as 'To Redeem' | 'Redeemed' | 'Expired' | 'Expiring in 7 days')}
+                    value={perk.status}
+                    onChange={(e) => handleStatusChange(e.target.value as 'To Redeem' | 'Redeemed')}
                     className="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
                     disabled={updatingStatus}
                   >
                     <option value="To Redeem">Mark as: To Redeem</option>
-                    <option value="Expiring in 7 days">Mark as: Expiring in 7 days</option>
                     <option value="Redeemed">Mark as: Redeemed</option>
-                    <option value="Expired">Mark as: Expired</option>
                   </select>
                   {updatingStatus && (
                     <div className="absolute right-2 top-2">
