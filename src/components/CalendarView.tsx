@@ -12,6 +12,7 @@ interface CalendarViewProps {
 const CalendarView = ({ perks }: CalendarViewProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(true);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Helper to check if a perk expires on a specific date
   const getPerksByDate = (date: Date) => {
@@ -19,6 +20,15 @@ const CalendarView = ({ perks }: CalendarViewProps) => {
       const expiryDate = new Date(perk.expiry);
       return isSameDay(expiryDate, date);
     });
+  };
+
+  // Get perks for current month
+  const getPerksForCurrentMonth = () => {
+    return perks.filter(perk => {
+      const expiryDate = new Date(perk.expiry);
+      return expiryDate.getMonth() === currentDate.getMonth() && 
+             expiryDate.getFullYear() === currentDate.getFullYear();
+    }).sort((a, b) => new Date(a.expiry).getDate() - new Date(b.expiry).getDate());
   };
 
   // Helper to get background color based on perk status and days remaining
@@ -42,6 +52,10 @@ const CalendarView = ({ perks }: CalendarViewProps) => {
 
   const toggleCalendarView = () => {
     setShowCalendar(!showCalendar);
+  };
+
+  const toggleViewMode = () => {
+    setViewMode(viewMode === 'grid' ? 'list' : 'grid');
   };
 
   const renderHeader = () => {
@@ -104,11 +118,11 @@ const CalendarView = ({ perks }: CalendarViewProps) => {
         days.push(
           <div
             key={day.toString()}
-            className={`border min-h-[80px] p-2 ${
+            className={`border min-h-[40px] md:min-h-[80px] p-1 md:p-2 ${
               !isSameMonth(day, monthStart) ? 'text-gray-400 bg-gray-50' : hasPerks ? backgroundColor : ''
             } ${isSameDay(day, new Date()) ? 'ring-2 ring-indigo-600 rounded' : ''}`}
           >
-            <div className="text-right">{formattedDate}</div>
+            <div className="text-right text-xs md:text-sm">{formattedDate}</div>
             {hasPerks && (
               <div className="mt-1">
                 {perksForDay.slice(0, 2).map((perk) => (
@@ -138,26 +152,70 @@ const CalendarView = ({ perks }: CalendarViewProps) => {
       );
       days = [];
     }
-    return <div className="mb-4">{rows}</div>;
+    return <div className="mb-4 overflow-x-auto">{rows}</div>;
+  };
+
+  const renderListView = () => {
+    const monthPerks = getPerksForCurrentMonth();
+    
+    return (
+      <div className="mb-4">
+        {monthPerks.length === 0 ? (
+          <p className="text-gray-500 text-center py-4">No perks expire this month</p>
+        ) : (
+          <ul className="divide-y divide-gray-200">
+            {monthPerks.map(perk => (
+              <li key={perk.id} className="py-3">
+                <Link href={`/perks/${perk.id}`} className="flex items-start hover:bg-gray-50 p-2 rounded">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm text-gray-900">{perk.business}</p>
+                    <p className="text-xs text-gray-500">Expires: {format(new Date(perk.expiry), 'MMM d, yyyy')}</p>
+                  </div>
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                    perk.status === 'Redeemed' ? 'bg-gray-100 text-gray-800' : 'bg-green-100 text-green-800'
+                  }`}>
+                    {perk.status}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
   };
 
   return (
-    <div className="bg-white rounded-md shadow-sm border p-4 mb-6">
-      <div className="flex justify-between items-center mb-4">
+    <div className="bg-white rounded-md shadow-sm border p-4 mb-6 overflow-hidden">
+      <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
         <h3 className="text-lg font-medium">Perk Calendar</h3>
-        <button
-          onClick={toggleCalendarView}
-          className="text-sm text-indigo-600 hover:text-indigo-800"
-        >
-          {showCalendar ? 'Hide Calendar' : 'Show Calendar'}
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={toggleViewMode}
+            className="text-xs md:text-sm bg-gray-100 px-2 py-1 rounded text-gray-700 hover:bg-gray-200"
+          >
+            {viewMode === 'grid' ? 'List View' : 'Grid View'}
+          </button>
+          <button
+            onClick={toggleCalendarView}
+            className="text-xs md:text-sm text-indigo-600 hover:text-indigo-800"
+          >
+            {showCalendar ? 'Hide Calendar' : 'Show Calendar'}
+          </button>
+        </div>
       </div>
       
       {showCalendar && (
         <>
           {renderHeader()}
-          {renderDays()}
-          {renderCells()}
+          {viewMode === 'grid' ? (
+            <>
+              {renderDays()}
+              {renderCells()}
+            </>
+          ) : (
+            renderListView()
+          )}
         </>
       )}
     </div>
