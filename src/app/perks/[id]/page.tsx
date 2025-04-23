@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getPerkById } from '../../../firebase/services';
+import { getPerkById, updatePerk } from '../../../firebase/services';
 import FirebaseDebugger from '../../../components/FirebaseDebugger';
 
 export default function PerkDetailsPage({ params }: { params: { id: string } }) {
@@ -14,6 +14,8 @@ export default function PerkDetailsPage({ params }: { params: { id: string } }) 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showDebugger, setShowDebugger] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [statusUpdateSuccess, setStatusUpdateSuccess] = useState(false);
 
   // Load perk data
   useEffect(() => {
@@ -55,6 +57,43 @@ export default function PerkDetailsPage({ params }: { params: { id: string } }) 
   const formatDate = (dateStr: string): string => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  // Handle status change
+  const handleStatusChange = async (newStatus: 'To Redeem' | 'Redeemed' | 'Expired') => {
+    if (!perk || newStatus === perk.status) return;
+    
+    try {
+      setUpdatingStatus(true);
+      await updatePerk(id, { status: newStatus });
+      
+      // Update local state
+      setPerk({
+        ...perk,
+        status: newStatus
+      });
+      
+      // Show success message
+      setStatusUpdateSuccess(true);
+      setTimeout(() => setStatusUpdateSuccess(false), 3000);
+    } catch (err) {
+      console.error('Error updating perk status:', err);
+      setError('Failed to update status');
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
+  // Get status color class
+  const getStatusColorClass = (status: string) => {
+    switch (status) {
+      case 'Redeemed':
+        return 'bg-green-100 text-green-800';
+      case 'Expired':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-blue-100 text-blue-800';
+    }
   };
 
   if (loading) {
@@ -103,6 +142,13 @@ export default function PerkDetailsPage({ params }: { params: { id: string } }) 
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {statusUpdateSuccess && (
+        <div className="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded shadow-md z-50" role="alert">
+          <strong className="font-bold">Success! </strong>
+          <span className="block sm:inline">Perk status updated successfully.</span>
+        </div>
+      )}
+      
       <div className="md:flex md:items-center md:justify-between mb-6">
         <div className="flex-1 min-w-0">
           <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{perk.business}</h1>
@@ -182,14 +228,28 @@ export default function PerkDetailsPage({ params }: { params: { id: string } }) 
             </div>
             <div className="py-4 sm:py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
               <dt className="text-sm font-medium text-gray-500">Status</dt>
-              <dd className="mt-1 text-sm sm:mt-0 sm:col-span-2">
-                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                  isExpired ? 'bg-red-100 text-red-800' : 
-                  isExpiringSoon ? 'bg-yellow-100 text-yellow-800' : 
-                  'bg-green-100 text-green-800'
-                }`}>
-                  {isExpired ? 'Expired' : isExpiringSoon ? 'Expiring Soon' : (perk.status || 'Active')}
+              <dd className="mt-1 text-sm sm:mt-0 sm:col-span-2 flex items-center">
+                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full mr-3 ${getStatusColorClass(perk.status)}`}>
+                  {perk.status || 'To Redeem'}
                 </span>
+                
+                <div className="relative">
+                  <select
+                    value={perk.status || 'To Redeem'}
+                    onChange={(e) => handleStatusChange(e.target.value as 'To Redeem' | 'Redeemed' | 'Expired')}
+                    className="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
+                    disabled={updatingStatus}
+                  >
+                    <option value="To Redeem">Mark as: To Redeem</option>
+                    <option value="Redeemed">Mark as: Redeemed</option>
+                    <option value="Expired">Mark as: Expired</option>
+                  </select>
+                  {updatingStatus && (
+                    <div className="absolute right-2 top-2">
+                      <div className="animate-spin h-4 w-4 border-t-2 border-indigo-500 rounded-full"></div>
+                    </div>
+                  )}
+                </div>
               </dd>
             </div>
             {perk.redemptionPhone && (

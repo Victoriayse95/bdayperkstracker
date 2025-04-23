@@ -101,6 +101,18 @@ export default function Home() {
     return formatDate(expiryDateStr);
   };
 
+  // Get row background class based on status
+  const getRowBackgroundClass = (status: string, daysRemaining: number): string => {
+    if (status === 'Redeemed') {
+      return 'bg-green-50';
+    } else if (status === 'Expired' || daysRemaining <= 0) {
+      return 'bg-red-50';
+    } else if (daysRemaining <= 7) {
+      return 'bg-yellow-50';
+    }
+    return '';
+  };
+
   const getCurrentMonthName = (): string => {
     return currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
   };
@@ -173,11 +185,12 @@ export default function Home() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {currentMonthPerks.map((perk) => {
-                    const expiryStatusClass = getExpiryStatusClass(perk.expiry);
                     const daysRemaining = getDaysRemaining(perk.expiry);
+                    const expiryStatusClass = getExpiryStatusClass(perk.expiry);
+                    const rowBackgroundClass = getRowBackgroundClass(perk.status, daysRemaining);
                     
                     return (
-                    <tr key={perk.id} className={daysRemaining <= 7 ? 'bg-yellow-50' : ''}>
+                    <tr key={perk.id} className={rowBackgroundClass}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {perk.business}
                       </td>
@@ -188,9 +201,16 @@ export default function Home() {
                         {formatDate(perk.startDate)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${expiryStatusClass}`}>
-                          {getExpiryStatusText(perk.expiry)}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${expiryStatusClass}`}>
+                            {getExpiryStatusText(perk.expiry)}
+                          </span>
+                          {perk.status === 'Redeemed' && (
+                            <span className="mt-1 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                              Redeemed
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500 break-words min-w-[200px]">
                         {perk.notes}
