@@ -28,7 +28,7 @@ export interface Perk {
   redemptionEmail: string;
   redemptionLink?: string;
   benefits?: string;
-  status: 'To Redeem' | 'Redeemed' | 'Expired';
+  status: 'To Redeem' | 'Redeemed' | 'Expired' | 'Expiring in 7 days';
   notes: string;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;

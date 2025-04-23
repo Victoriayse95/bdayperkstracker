@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { getAllPerks, Perk, samplePerks } from '../firebase/services';
+import { getAllPerks, Perk, samplePerks, updatePerk } from '../firebase/services';
 
 export default function Home() {
   const [perks, setPerks] = useState<Perk[]>([]);
@@ -10,6 +10,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [usingSample, setUsingSample] = useState(false);
   const [currentDate] = useState(new Date());
+  const [updatingIds, setUpdatingIds] = useState<string[]>([]);
 
   // Filter for current month perks
   const currentMonthPerks = perks.filter(perk => {
@@ -58,6 +59,47 @@ export default function Home() {
     fetchPerks();
   }, []);
 
+  // Auto-update perks that are expiring soon
+  useEffect(() => {
+    const updateExpiringPerks = async () => {
+      const updatedPerks = [...perks];
+      let hasChanges = false;
+      
+      for (let i = 0; i < updatedPerks.length; i++) {
+        const perk = updatedPerks[i];
+        if (!perk.id) continue;
+        
+        const daysRemaining = getDaysRemaining(perk.expiry);
+        
+        // If expiring within 7 days and status is "To Redeem", update to "Expiring in 7 days"
+        if (daysRemaining > 0 && daysRemaining <= 7 && perk.status === 'To Redeem') {
+          // Only update if we're not already updating this perk
+          if (!updatingIds.includes(perk.id)) {
+            setUpdatingIds(prev => [...prev, perk.id as string]);
+            
+            try {
+              await updatePerk(perk.id, { status: 'Expiring in 7 days' });
+              updatedPerks[i] = { ...perk, status: 'Expiring in 7 days' };
+              hasChanges = true;
+            } catch (err) {
+              console.error(`Error updating perk ${perk.id}:`, err);
+            } finally {
+              setUpdatingIds(prev => prev.filter(id => id !== perk.id));
+            }
+          }
+        }
+      }
+      
+      if (hasChanges) {
+        setPerks(updatedPerks);
+      }
+    };
+    
+    if (perks.length > 0 && !loading) {
+      updateExpiringPerks();
+    }
+  }, [perks, loading, updatingIds]);
+
   // Calculate days remaining until expiry
   const getDaysRemaining = (expiryDateStr: string): number => {
     const today = new Date();
@@ -69,16 +111,20 @@ export default function Home() {
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
-  // Get status class based on days remaining
-  const getExpiryStatusClass = (expiryDateStr: string): string => {
-    const daysRemaining = getDaysRemaining(expiryDateStr);
-    
-    if (daysRemaining <= 0) {
-      return 'bg-red-100 text-red-800'; // Expired
-    } else if (daysRemaining <= 7) {
-      return 'bg-yellow-100 text-yellow-800'; // Expiring soon
+  // Get status class based on perk status
+  const getStatusClass = (status: string): string => {
+    switch (status) {
+      case 'To Redeem':
+        return 'bg-green-100 text-green-800';
+      case 'Redeemed':
+        return 'bg-white text-gray-600';
+      case 'Expired':
+        return 'bg-gray-200 text-gray-700';
+      case 'Expiring in 7 days':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-white text-gray-600';
     }
-    return 'bg-blue-100 text-blue-800'; // Normal
   };
 
   // Format date to readable string
@@ -103,14 +149,18 @@ export default function Home() {
 
   // Get row background class based on status
   const getRowBackgroundClass = (status: string, daysRemaining: number): string => {
-    if (status === 'Redeemed') {
-      return 'bg-green-50';
-    } else if (status === 'Expired' || daysRemaining <= 0) {
-      return 'bg-red-50';
-    } else if (daysRemaining <= 7) {
-      return 'bg-yellow-50';
+    switch (status) {
+      case 'To Redeem':
+        return 'bg-green-50';
+      case 'Redeemed':
+        return '';
+      case 'Expired':
+        return 'bg-gray-100';
+      case 'Expiring in 7 days':
+        return 'bg-red-50';
+      default:
+        return '';
     }
-    return '';
   };
 
   const getCurrentMonthName = (): string => {
@@ -173,7 +223,7 @@ export default function Home() {
                       Start Date
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer w-1/12">
-                      Expiry Status
+                      Status
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-2/12">
                       Notes
@@ -186,7 +236,7 @@ export default function Home() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {currentMonthPerks.map((perk) => {
                     const daysRemaining = getDaysRemaining(perk.expiry);
-                    const expiryStatusClass = getExpiryStatusClass(perk.expiry);
+                    const statusClass = getStatusClass(perk.status);
                     const rowBackgroundClass = getRowBackgroundClass(perk.status, daysRemaining);
                     
                     return (
@@ -202,12 +252,12 @@ export default function Home() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col">
-                          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${expiryStatusClass}`}>
-                            {getExpiryStatusText(perk.expiry)}
+                          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}`}>
+                            {perk.status}
                           </span>
-                          {perk.status === 'Redeemed' && (
-                            <span className="mt-1 px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                              Redeemed
+                          {perk.status === 'Expiring in 7 days' && (
+                            <span className="mt-1 text-xs text-red-600">
+                              {getExpiryStatusText(perk.expiry)}
                             </span>
                           )}
                         </div>

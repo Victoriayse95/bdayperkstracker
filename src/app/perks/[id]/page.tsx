@@ -60,7 +60,7 @@ export default function PerkDetailsPage({ params }: { params: { id: string } }) 
   };
 
   // Handle status change
-  const handleStatusChange = async (newStatus: 'To Redeem' | 'Redeemed' | 'Expired') => {
+  const handleStatusChange = async (newStatus: 'To Redeem' | 'Redeemed' | 'Expired' | 'Expiring in 7 days') => {
     if (!perk || newStatus === perk.status) return;
     
     try {
@@ -87,14 +87,38 @@ export default function PerkDetailsPage({ params }: { params: { id: string } }) 
   // Get status color class
   const getStatusColorClass = (status: string) => {
     switch (status) {
-      case 'Redeemed':
+      case 'To Redeem':
         return 'bg-green-100 text-green-800';
+      case 'Redeemed':
+        return 'bg-white text-gray-600';
       case 'Expired':
+        return 'bg-gray-200 text-gray-700';
+      case 'Expiring in 7 days':
         return 'bg-red-100 text-red-800';
       default:
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-white text-gray-600';
     }
   };
+
+  // Determine if perk is expiring soon
+  const shouldShowExpiringSoon = () => {
+    if (!perk || !perk.expiry) return false;
+    
+    const daysRemaining = getDaysRemaining(perk.expiry);
+    return perk.status === 'To Redeem' && daysRemaining > 0 && daysRemaining <= 7;
+  };
+
+  // Auto-update status if needed
+  useEffect(() => {
+    if (perk && perk.status === 'To Redeem') {
+      const daysRemaining = getDaysRemaining(perk.expiry);
+      
+      // If expiring within 7 days and status is still "To Redeem", update to "Expiring in 7 days"
+      if (daysRemaining > 0 && daysRemaining <= 7 && perk.status !== 'Expiring in 7 days') {
+        handleStatusChange('Expiring in 7 days');
+      }
+    }
+  }, [perk]);
 
   if (loading) {
     return (
@@ -169,7 +193,7 @@ export default function PerkDetailsPage({ params }: { params: { id: string } }) 
         </div>
       </div>
 
-      {isExpiringSoon && (
+      {shouldShowExpiringSoon() && (
         <div className="mb-6 bg-yellow-50 border-l-4 border-yellow-400 p-4">
           <div className="flex">
             <div className="flex-shrink-0">
@@ -236,11 +260,12 @@ export default function PerkDetailsPage({ params }: { params: { id: string } }) 
                 <div className="relative">
                   <select
                     value={perk.status || 'To Redeem'}
-                    onChange={(e) => handleStatusChange(e.target.value as 'To Redeem' | 'Redeemed' | 'Expired')}
+                    onChange={(e) => handleStatusChange(e.target.value as 'To Redeem' | 'Redeemed' | 'Expired' | 'Expiring in 7 days')}
                     className="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 rounded-md"
                     disabled={updatingStatus}
                   >
                     <option value="To Redeem">Mark as: To Redeem</option>
+                    <option value="Expiring in 7 days">Mark as: Expiring in 7 days</option>
                     <option value="Redeemed">Mark as: Redeemed</option>
                     <option value="Expired">Mark as: Expired</option>
                   </select>

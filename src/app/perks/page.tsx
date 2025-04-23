@@ -91,13 +91,31 @@ export default function PerksPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'To Redeem':
-        return 'bg-blue-100 text-blue-800';
-      case 'Redeemed':
         return 'bg-green-100 text-green-800';
+      case 'Redeemed':
+        return 'bg-white text-gray-600';
       case 'Expired':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-200 text-gray-700';
+      case 'Expiring in 7 days':
+        return 'bg-red-100 text-red-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-white text-gray-600';
+    }
+  };
+
+  // Get row background class based on status
+  const getRowBackgroundClass = (status: string) => {
+    switch (status) {
+      case 'To Redeem':
+        return 'bg-green-50';
+      case 'Redeemed':
+        return '';
+      case 'Expired':
+        return 'bg-gray-100';
+      case 'Expiring in 7 days':
+        return 'bg-red-50';
+      default:
+        return '';
     }
   };
 
@@ -199,7 +217,7 @@ export default function PerksPage() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {perks.map((perk) => (
-                    <tr key={perk.id}>
+                    <tr key={perk.id} className={getRowBackgroundClass(perk.status)}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {perk.business}
                       </td>
